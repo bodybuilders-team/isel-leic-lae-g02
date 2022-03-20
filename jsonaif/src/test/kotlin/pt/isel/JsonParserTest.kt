@@ -2,31 +2,12 @@ package pt.isel
 
 import pt.isel.sample.Person
 import pt.isel.sample.Student
-import kotlin.reflect.full.NoSuchPropertyException
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
+import kotlin.test.*
 
 class JsonParserTest {
 
 	@Test
-	fun parseSimpleObjectWithoutPrimitives() {
-		val json = "{ name: \"Ze Manel\"}"
-		val student = JsonParserReflect.parse(json, Student::class) as Student
-		assertEquals("Ze Manel", student.name)
-		assertEquals(0, student.nr)
-	}
-
-	@Test
-	fun parseSimpleObjectWithNonExistentPropertyThrows() {
-		val json = "{ age: \"Ze Manel\" }"
-		assertFailsWith<NoSuchPropertyException> {
-			JsonParserReflect.parse(json, Student::class) as Student
-		}
-	}
-
-	@Test
-	fun parseSimpleObjectViaProperties() {
+	fun `parse simple object via properties works`() {
 		val json = "{ name: \"Ze Manel\", nr: 7353}"
 		val student = JsonParserReflect.parse(json, Student::class) as Student
 		assertEquals("Ze Manel", student.name)
@@ -34,7 +15,38 @@ class JsonParserTest {
 	}
 
 	@Test
-	fun parseSimpleObjectViaConstructor() {
+	fun `parse simple object without primitives works`() {
+		val json = "{ name: \"Ze Manel\"}"
+		val student = JsonParserReflect.parse(json, Student::class) as Student
+		assertEquals("Ze Manel", student.name)
+		assertEquals(0, student.nr)
+	}
+
+	@Test
+	fun `parse simple object with null property works`() {
+		val json = "{ name: null }"
+		val student = JsonParserReflect.parse(json, Student::class) as Student
+		assertNull(student.name)
+	}
+
+	@Test
+	fun `parse simple object with non existent property throws`() {
+		val json = "{ age: \"Ze Manel\" }"
+		assertFailsWith<ParseException> {
+			JsonParserReflect.parse(json, Student::class) as Student
+		}
+	}
+
+	@Test
+	fun `parse simple object with wrong property type throws`() {
+		val json = "{ name: 123 }"
+		assertFailsWith<ParseException> {
+			JsonParserReflect.parse(json, Student::class) as Student
+		}
+	}
+
+	@Test
+	fun `parse simple object via constructor works`() {
 		val json = "{ id: 94646, name: \"Ze Manel\"}"
 		val p = JsonParserReflect.parse(json, Person::class) as Person
 		assertEquals(94646, p.id)
@@ -42,7 +54,7 @@ class JsonParserTest {
 	}
 
 	@Test
-	fun parseComposeObject() {
+	fun `parse compose object works`() {
 		val json =
 			"{ id: 94646, name: \"Ze Manel\", birth: { year: 1999, month: 9, day: 19}, sibling: { name: \"Kata Badala\"}}"
 		val p = JsonParserReflect.parse(json, Person::class) as Person
@@ -54,7 +66,7 @@ class JsonParserTest {
 	}
 
 	@Test
-	fun parseArray() {
+	fun `parse array works`() {
 		val json = "[{name: \"Ze Manel\"}, {name: \"Candida Raimunda\"}, {name: \"Kata Mandala\"}]";
 		val ps = JsonParserReflect.parse(json, Person::class) as List<Person>
 		assertEquals(3, ps.size)

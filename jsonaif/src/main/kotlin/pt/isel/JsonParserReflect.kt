@@ -14,12 +14,12 @@ object JsonParserReflect : AbstractJsonParser() {
 	 */
 	private val setters = mutableMapOf<KClass<*>, Map<String, Setter>>()
 
+
 	override fun parsePrimitive(tokens: JsonTokens, klass: KClass<*>): Any? {
-		val unparsedValue = tokens.popWordPrimitive().trim()  //TODO: Check this "trim" in the future
+		val unparsedValue = tokens.popWordPrimitive().trim()  // TODO: 20/03/2022 Check this "trim" in the future
 		if (unparsedValue == "null") return null
 
 		val parseException = ParseException.unexpectedClass(unparsedValue, klass.qualifiedName!!)
-
 		val parser = basicParser[klass] ?: throw parseException
 
 		try {
@@ -31,23 +31,19 @@ object JsonParserReflect : AbstractJsonParser() {
 		}
 	}
 
-	override fun parseObject(tokens: JsonTokens, klass: KClass<*>): Any? {
+
+	override fun parseObject(tokens: JsonTokens, klass: KClass<*>): Any? { // TODO: 20/03/2022 Ask why can be null
 		tokens.pop(OBJECT_OPEN)
-		val props = klass.memberProperties.associateBy { kProp -> kProp.name }
 		val instance = klass.createInstance()
+
+		if (setters[klass] == null)
+			setters[klass] = getSetters(klass)
 
 		while (tokens.current != OBJECT_END) {
 			val propName = tokens.popWordFinishedWith(COLON).trim()
-			val kProp = (
-					props[propName] ?: throw NoSuchPropertyException(Exception("Property $propName doesn't exist"))
-					) as KMutableProperty<*>
 
-			val propValue = parse(tokens, kProp.returnType.classifier as KClass<*>)
-
-			if (propValue == null && !kProp.returnType.isMarkedNullable)
-				throw ParseException("Value of property $propName should not be null")
-
-			kProp.setter.call(instance, propValue)
+			val setter = setters[klass]!![propName] ?: throw ParseException("Property $propName doesn't exist")
+			setter.apply(target = instance, tokens)
 
 			if (tokens.current == COMMA)
 				tokens.pop(COMMA)
@@ -56,12 +52,27 @@ object JsonParserReflect : AbstractJsonParser() {
 		tokens.pop(OBJECT_END)
 		return instance
 	}
-}
 
 
-class ParseException(message: String) : Exception(message) {
-	companion object {
-		fun unexpectedClass(unparsedValue: String, className: String) =
-			ParseException("Value $unparsedValue is not of expected class $className")
-	}
+	/**
+	 * Gets the [klass] properties setters.
+	 * @param klass representation of a class
+	 * @return map with pairs PropertyName : PropertySetter
+	 */
+	private fun getSetters(klass: KClass<*>): Map<String, Setter> =
+		klass.memberProperties.associate { kProp ->
+			Pair(
+				kProp.name,
+				object : Setter {
+					override fun apply(target: Any, tokens: JsonTokens) {
+						val propValue = parse(tokens, kProp.returnType.classifier as KClass<*>)
+
+						if (propValue == null && !kProp.returnType.isMarkedNullable)
+							throw ParseException("Value of property ${kProp.name} should not be null")
+
+						(kProp as KMutableProperty<*>).setter.call(target, propValue)
+					}
+				}
+			)
+		}
 }
