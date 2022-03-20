@@ -11,9 +11,10 @@ class JsonParserTest {
 
 	@Test
 	fun parseSimpleObjectWithoutPrimitives() {
-		val json = "{ name: \"Ze Manel\" }"
+		val json = "{ name: \"Ze Manel\"}"
 		val student = JsonParserReflect.parse(json, Student::class) as Student
 		assertEquals("Ze Manel", student.name)
+		assertEquals(0, student.nr)
 	}
 
 	@Test

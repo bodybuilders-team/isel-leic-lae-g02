@@ -60,6 +60,7 @@ abstract class AbstractJsonParser : JsonParser {
 	private fun parseArray(tokens: JsonTokens, klass: KClass<*>): List<Any?> {
 		val list = mutableListOf<Any?>()
 		tokens.pop(ARRAY_OPEN) // Discard square brackets [ ARRAY_OPEN
+		tokens.trim() // Added to allow for empty arrays - todo changed
 		while (tokens.current != ARRAY_END) {
 			val v = parse(tokens, klass)
 			list.add(v)
