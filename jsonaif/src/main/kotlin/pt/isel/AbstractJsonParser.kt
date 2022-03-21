@@ -1,6 +1,7 @@
 package pt.isel
 
 import kotlin.reflect.KClass
+import kotlin.reflect.full.createType
 
 
 /**
@@ -53,6 +54,7 @@ abstract class AbstractJsonParser : JsonParser {
 
 	/**
 	 * Parses the JSON array tokens with a class representation.
+	 *
 	 * @param tokens JSON tokens
 	 * @param klass represents a class
 	 * @return string instance with [tokens] data
@@ -64,6 +66,7 @@ abstract class AbstractJsonParser : JsonParser {
 		while (tokens.current != ARRAY_END) {
 			val v = parse(tokens, klass)
 			list.add(v)
+
 			if (tokens.current == COMMA) // The last element finishes with ] rather than a comma
 				tokens.pop(COMMA) // Discard COMMA
 			else break
