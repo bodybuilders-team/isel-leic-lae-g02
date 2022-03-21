@@ -9,7 +9,8 @@ class ParseException(message: String) : Exception(message) {
 	companion object {
 
 		/**
-		 * Receives an [unparsedValue] and a [className] and returns a ParseException with a specific message.
+		 * Receives an [unparsedValue] and a [className] and returns a ParseException with a specific message
+		 * saying the value is not of the expected class.
 		 */
 		fun unexpectedClass(unparsedValue: String, className: String) =
 			ParseException("Value $unparsedValue is not of expected class $className")

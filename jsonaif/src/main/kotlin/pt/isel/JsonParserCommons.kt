@@ -9,5 +9,5 @@ val basicParser: Map<KClass<*>, (String) -> Any> = mapOf(
 	Long::class 	to { it.toLong() },
 	Float::class 	to { it.toFloat() },
 	Double::class 	to { it.toDouble() },
-	Boolean::class 	to { it.toBooleanStrict() } // TODO: 20/03/2022 Ask professor
+	Boolean::class 	to { it.toBooleanStrict() }
 )

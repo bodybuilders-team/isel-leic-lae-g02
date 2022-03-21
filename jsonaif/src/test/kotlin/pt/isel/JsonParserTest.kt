@@ -109,30 +109,50 @@ class JsonParserTest {
     }
 
 
-//    @Test
-//    fun `Parse Competition`() {
-//        val bikesWithOwners = listOf(
-//            BikeWithOwner(
-//                Bike("0D-45-33", "Yamaha MT07"),
-//                Person(0, "André Páscoa")
-//            ),
-//
-//            BikeWithOwner(
-//                Bike("0D-45-33", "Yamaha MT07"),
-//                Person(0, "André Páscoa")
-//            ),
-//            BikeWithOwner(
-//                Bike("0D-45-33", "Yamaha MT07"),
-//                Person(0, "André Páscoa")
-//            )
-//        )
-//
-//        val mockCompetition = Competition("Cabo da roca GP", bikesWithOwners, 0)
-//
-//        val json = ""
-//        val competition = JsonParserReflect.parse(json, Competition::class) as Competition
-//
-//    }
+    @Test
+    fun `Parse Competition`() {
+        val bikesWithOwners = listOf(
+            BikeWithOwner(
+                Bike("0D-45-33", "Yamaha MT07"),
+                Person(0, "André Páscoa")
+            ),
+
+            BikeWithOwner(
+                Bike("66-XX-33", "Yamaha R1"),
+                Person(1, "Nyckollas Brandão")
+            ),
+            BikeWithOwner(
+                Bike("33-DD-33", "Casal Boss 1989"),
+                Person(2, "André Páscoa")
+            )
+        )
+
+        val mockCompetition = Competition("Cabo da roca GP", bikesWithOwners, 0)
+
+        val json = "{name: \"Cabo da roca GP\"," +
+                " competitors: [" +
+                "{bike: {plate: \"0D-45-33\", model: \"Yamaha MT07\"}," +
+                " owner: {id: 0, name: \"André Páscoa\"}" +
+                "}," +
+                " { bike: {plate: \"66-XX-33\", model: \"Yamaha R1\"}," +
+                " owner: {id: 1, name: \"Nyckollas Brandão\"}" +
+                "}," +
+                " {bike: {plate: \"33-DD-33\", model: \"Casal Boss 1989\"}," +
+                " owner: {id: 2, name: \"André Páscoa\"}" +
+                "}" +
+                "], winner: 0}"
+
+        val competition = JsonParserReflect.parse(json, Competition::class) as Competition
+        assertEquals(mockCompetition.name, competition.name)
+
+        assertEquals(mockCompetition.competitors.size, competition.competitors.size)
+        for (index in competition.competitors.indices) {
+            assertEquals(mockCompetition.competitors[index].owner, competition.competitors[index].owner)
+            assertEquals(mockCompetition.competitors[index].bike, competition.competitors[index].bike)
+        }
+
+        assertEquals(mockCompetition.winner, competition.winner)
+    }
 
 
 }
