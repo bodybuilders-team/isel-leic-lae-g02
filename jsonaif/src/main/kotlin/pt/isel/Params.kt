@@ -7,5 +7,10 @@ import kotlin.reflect.*
  */
 interface Params {
 
-    fun add(params: MutableMap<KParameter, Any?>, tokens: JsonTokens)
+	/**
+	 * Adds parameter represented as [tokens] to [params] map.
+	 * @param params map of params
+	 * @param tokens JSON tokens
+	 */
+	fun add(params: MutableMap<KParameter, Any?>, tokens: JsonTokens)
 }

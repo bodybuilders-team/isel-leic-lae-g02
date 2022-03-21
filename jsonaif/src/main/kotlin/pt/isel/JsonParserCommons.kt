@@ -2,6 +2,9 @@ package pt.isel
 
 import kotlin.reflect.KClass
 
+/**
+ * Association between KClass and parser for primitive types.
+ */
 val basicParser: Map<KClass<*>, (String) -> Any> = mapOf(
 	Byte::class 	to { it.toByte() },
 	Short::class 	to { it.toShort() },

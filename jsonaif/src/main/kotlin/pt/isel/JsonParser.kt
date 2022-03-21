@@ -4,6 +4,8 @@ import kotlin.reflect.KClass
 
 /**
  * Representation of a JSON parser.
+ *
+ * @see <a href="https://www.json.org">JSON specs</a>
  */
 interface JsonParser {
 
