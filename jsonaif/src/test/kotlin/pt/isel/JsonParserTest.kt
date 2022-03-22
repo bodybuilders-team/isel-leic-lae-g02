@@ -166,4 +166,16 @@ class JsonParserTest {
 		assertEquals(1999, p.birth?.year)
 		assertEquals(9999, p.salary)
 	}
+
+	@Test
+	fun `Parse Cake`(){
+		val json =
+			"{ expDate: \"1998-11-17\" }"
+
+		val c = JsonParserReflect.parse(json, Cake::class) as Cake
+
+		assertEquals(c.expDate, Date(17, 11, 1998))
+		assertEquals(c.mainFlavor, "Cocoa")
+	}
+
 }

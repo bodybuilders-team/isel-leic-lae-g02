@@ -122,7 +122,23 @@ object JsonParserReflect : AbstractJsonParser() {
 				getJsonPropertyName(kParam),
 				object : Params {
 					override fun add(params: MutableMap<KParameter, Any?>, tokens: JsonTokens) {
-						val propValue = parse(tokens, kParam.type)
+						val converterAnnotation = kParam.findAnnotation<JsonConvert>()
+
+						val propValue = if (converterAnnotation != null) {
+							val converterClass = converterAnnotation.converter
+
+							val convertInterface =
+								converterClass.supertypes.find { it.classifier == JsonConverter::class }
+									?: throw NotImplementedError("Class passed as argument to JsonConvert annotation should implement JsonConverter interface")
+
+							val convertFunction = converterClass.memberFunctions.first()
+
+							val jsonType = convertInterface.arguments[0].type!!.classifier as KClass<*> // TODO: 21/03/2022 Check generic type (!!)
+
+							convertFunction.call(converterClass.objectInstance, parse(tokens, jsonType)) // TODO: 21/03/2022
+
+						} else parse(tokens, kParam.type)
+
 						params[kParam] = propValue
 					}
 				}
@@ -175,7 +191,7 @@ object JsonParserReflect : AbstractJsonParser() {
 
 
 /**
- * Checks if a KClass has no arguments constructors.
+ * Checks if a KClass has constructors with no arguments.
  * @return true if the class has one or more constructors with no arguments
  */
 fun <T : Any> KClass<T>.hasNoArgsConstructor(): Boolean =
