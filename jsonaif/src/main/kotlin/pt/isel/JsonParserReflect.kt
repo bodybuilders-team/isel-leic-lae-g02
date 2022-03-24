@@ -63,7 +63,7 @@ object JsonParserReflect : AbstractJsonParser() {
 		setters.computeIfAbsent(klass, ::loadSetters)
 
 		traverseJsonObject(tokens) { propName ->
-			val setter = setters[klass]!![propName] ?: throw ParseException("Parameter $propName doesn't exist")
+			val setter = setters[klass]?.get(propName) ?: throw ParseException("Parameter $propName doesn't exist")
 			setter.apply(target = instance, tokens)
 		}
 
@@ -85,7 +85,7 @@ object JsonParserReflect : AbstractJsonParser() {
 		params.computeIfAbsent(klass, ::loadParams)
 
 		traverseJsonObject(tokens) { propName ->
-			val params = params[klass]!![propName] ?: throw ParseException("Parameter $propName doesn't exist")
+			val params = params[klass]?.get(propName) ?: throw ParseException("Parameter $propName doesn't exist")
 			params.add(params = constructorParams, tokens)
 		}
 
@@ -124,25 +124,37 @@ object JsonParserReflect : AbstractJsonParser() {
 					override fun add(params: MutableMap<KParameter, Any?>, tokens: JsonTokens) {
 						val converterAnnotation = kParam.findAnnotation<JsonConvert>()
 
-						val propValue = if (converterAnnotation != null) {
-							val converterClass = converterAnnotation.converter
-
-							val convertInterface =
-								converterClass.supertypes.find { it.classifier == JsonConverter::class }
-									?: throw NotImplementedError("Class passed as argument to JsonConvert annotation should implement JsonConverter interface")
-
-							val convertFunction = converterClass.memberFunctions.first()
-
-							val jsonType = convertInterface.arguments[0].type!!.classifier as KClass<*> // TODO: 21/03/2022 Check generic type (!!)
-
-							convertFunction.call(converterClass.objectInstance, parse(tokens, jsonType)) // TODO: 21/03/2022
-
-						} else parse(tokens, kParam.type)
+						val propValue =
+							if (converterAnnotation != null)
+								getPropValueFromConverter(converterAnnotation, tokens)
+							else
+								parse(tokens, kParam.type)
 
 						params[kParam] = propValue
 					}
 				}
 			)
+		}
+
+
+	/**
+	 * Gets the property value calling the convert function in [convertAnnotation] converter.
+	 * @param convertAnnotation annotation with converter
+	 * @param tokens JSON tokens
+	 * @return property value
+	 */
+	private fun getPropValueFromConverter(convertAnnotation: JsonConvert, tokens: JsonTokens): Any? =
+		convertAnnotation.converter.apply {
+			val convertInterface = supertypes.singleOrNull { it.classifier == JsonConverter::class }
+				?: throw NotImplementedError(
+					"Class passed as argument to JsonConvert annotation should implement JsonConverter interface"
+				)
+
+			// TODO: 21/03/2022 Check generic type (!!)
+			val jsonType = convertInterface.arguments.first().type!!.classifier as KClass<*>
+			val convertFunction = memberFunctions.first()
+
+			return convertFunction.call(objectInstance, parse(tokens, jsonType))
 		}
 
 
@@ -178,7 +190,7 @@ object JsonParserReflect : AbstractJsonParser() {
 		val klass = type.classifier as KClass<*>
 		val propValue =
 			if (type.classifier == List::class)
-				parse(tokens, type.arguments[0].type!!.classifier!! as KClass<*>)
+				parse(tokens, type.arguments.first().type!!.classifier!! as KClass<*>)
 			else
 				parse(tokens, klass)
 
