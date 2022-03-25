@@ -1,9 +1,14 @@
 package pt.isel
 
+import pt.isel.json_parser.JsonParserReflect
+import pt.isel.json_parser.ParseException
 import pt.isel.sample.*
 import kotlin.test.*
 
+
 class JsonParserTest {
+
+	// ----------- Simple Objects -----------
 
 	@Test
 	fun `parse simple object via properties works`() {
@@ -19,6 +24,13 @@ class JsonParserTest {
 		val student = JsonParserReflect.parse(json, Student::class) as Student
 		assertEquals("Ze Manel", student.name)
 		assertEquals(0, student.nr)
+	}
+
+	@Test
+	fun `parse simple object only with primitives works`() {
+		val json = "{ nr: 1234 }"
+		val student = JsonParserReflect.parse(json, Student::class) as Student
+		assertEquals(1234, student.nr)
 	}
 
 	@Test
@@ -47,52 +59,119 @@ class JsonParserTest {
 	@Test
 	fun `parse simple object via constructor works`() {
 		val json = "{ id: 94646, name: \"Ze Manel\"}"
-		val p = JsonParserReflect.parse(json, Person::class) as Person
-		assertEquals(94646, p.id)
-		assertEquals("Ze Manel", p.name)
+		val person = JsonParserReflect.parse(json, Person::class) as Person
+
+		assertEquals(94646, person.id)
+		assertEquals("Ze Manel", person.name)
 	}
+
+	@Test
+	fun `parse empty object works`() {
+		val json = "{ }"
+		val student = JsonParserReflect.parse(json, Student::class) as Student
+
+		assertEquals(0, student.nr)
+		assertNull(student.name)
+	}
+
+	// ----------- Primitives -----------
+
+	@Test
+	fun `parse string works`() {
+		val unparsedStr = "\"hello world\" "
+		val parsedStr = JsonParserReflect.parse(unparsedStr, String::class)
+		assertEquals("hello world", parsedStr)
+	}
+
+	@Test
+	fun `parse number works`() {
+		val unparsedNr = "123,"
+		val nr = JsonParserReflect.parse(unparsedNr, Int::class)
+		assertEquals(123, nr)
+	}
+
+	@Test
+	fun `parse true value works`() {
+		val unparsedNr = "true,"
+		val parsed = JsonParserReflect.parse(unparsedNr, Boolean::class) as Boolean
+		assertTrue(parsed)
+	}
+
+	@Test
+	fun `parse false value works`() {
+		val unparsedNr = "false,"
+		val parsed = JsonParserReflect.parse(unparsedNr, Boolean::class) as Boolean
+		assertFalse(parsed)
+	}
+
+	@Test
+	fun `parse null value works`() {
+		val unparsedNr = "null,"
+		val nr = JsonParserReflect.parse(unparsedNr, Int::class)
+		assertEquals(null, nr)
+	}
+
+	@Test
+	fun `parse value with wrong klass throws`() {
+		val unparsedNr = "true,"
+		assertFailsWith<ParseException> {
+			JsonParserReflect.parse(unparsedNr, Int::class)
+		}
+	}
+
+	// ----------- Other tests -----------
 
 	@Test
 	fun `parse compose object works`() {
 		val json =
 			"{ id: 94646, name: \"Ze Manel\", birth: { year: 1999, month: 9, day: 19}, sibling: { name: \"Kata Badala\"}}"
-		val p = JsonParserReflect.parse(json, Person::class) as Person
-		assertEquals(94646, p.id)
-		assertEquals("Ze Manel", p.name)
-		assertEquals(19, p.birth?.day)
-		assertEquals(9, p.birth?.month)
-		assertEquals(1999, p.birth?.year)
+		val person = JsonParserReflect.parse(json, Person::class) as Person
+
+		assertEquals(94646, person.id)
+		assertEquals("Ze Manel", person.name)
+		assertEquals(19, person.birth?.day)
+		assertEquals(9, person.birth?.month)
+		assertEquals(1999, person.birth?.year)
 	}
 
 	@Test
 	fun `parse array works`() {
-		val json = "[{name: \"Ze Manel\"}, {name: \"Candida Raimunda\"}, {name: \"Kata Mandala\"}]";
-		val ps = JsonParserReflect.parse(json, Person::class) as List<Person>
-		assertEquals(3, ps.size)
-		assertEquals("Ze Manel", ps[0].name)
-		assertEquals("Candida Raimunda", ps[1].name)
-		assertEquals("Kata Mandala", ps[2].name)
+		val json = "[{name: \"Ze Manel\"}, {name: \"Candida Raimunda\"}, {name: \"Kata Mandala\"}]"
+		val persons = JsonParserReflect.parse(json, Person::class) as List<Person>
+
+		assertEquals(3, persons.size)
+		assertEquals("Ze Manel", persons[0].name)
+		assertEquals("Candida Raimunda", persons[1].name)
+		assertEquals("Kata Mandala", persons[2].name)
 	}
 
 	@Test
-	fun `Parse Classroom`() {
+	fun `parse empty array works`() {
+		val json = "[ ]"
+		val persons = JsonParserReflect.parse(json, Person::class) as List<Person>
+
+		assertEquals(0, persons.size)
+	}
+
+	@Test
+	fun `parse object with no optional parameters (Classroom) works`() {
 		val json =
 			"{ name: \"LAE\", students: [{name: \"André Páscoa\"}, {name: \"André Jesus\"}, {name: \"Nyckollas Brandão\"}]}"
-		val c = JsonParserReflect.parse(json, Classroom::class) as Classroom
-		assertEquals("LAE", c.name)
-		assertEquals(3, c.students.size)
-		assertEquals("André Páscoa", c.students[0].name)
-		assertEquals("André Jesus", c.students[1].name)
-		assertEquals("Nyckollas Brandão", c.students[2].name)
+		val classroom = JsonParserReflect.parse(json, Classroom::class) as Classroom
+
+		assertEquals("LAE", classroom.name)
+		assertEquals(3, classroom.students.size)
+		assertEquals("André Páscoa", classroom.students[0].name)
+		assertEquals("André Jesus", classroom.students[1].name)
+		assertEquals("Nyckollas Brandão", classroom.students[2].name)
 	}
 
 	@Test
-	fun `Parse Account`() {
-		val json =
-			"{id:\"andrepascoa\", balance: 9000," +
-					" transactions: [{fromId:\"andrepascoa\", toId:\"andrejesus\", amount: 1000}," +
-					" {fromId:\"andrejesus\", toId:\"nyckollasbrandao\", amount: 1000}," +
-					" {fromId:\"nyckollasbrandao\", toId:\"andrepascoa\", amount: 1000}]}"
+	fun `parse object with an array (Account) works`() {
+		val json = "{id:\"andrepascoa\", balance: 9000," +
+				" transactions: [{fromId:\"andrepascoa\", toId:\"andrejesus\", amount: 1000}," +
+				" {fromId:\"andrejesus\", toId:\"nyckollasbrandao\", amount: 1000}," +
+				" {fromId:\"nyckollasbrandao\", toId:\"andrepascoa\", amount: 1000}]}"
 
 		val account = JsonParserReflect.parse(json, Account::class) as Account
 		val mockTransactions = listOf(
@@ -110,7 +189,7 @@ class JsonParserTest {
 
 
 	@Test
-	fun `Parse Competition`() {
+	fun `parse object with an array (Competition) works`() {
 		val bikesWithOwners = listOf(
 			BikeWithOwner(
 				Bike("0D-45-33", "Yamaha MT07"),
@@ -155,27 +234,24 @@ class JsonParserTest {
 	}
 
 	@Test
-	fun `Parse Employee`() {
-		val json =
-			"{ name: \"Ze Manel\", birth_date: { year: 1999, month: 9, day: 19}, salary: 9999}"
-		val p = JsonParserReflect.parse(json, Employee::class) as Employee
+	fun `parse object with other property mame (Employee) works`() {
+		val json = "{ name: \"Ze Manel\", birth_date: { year: 1999, month: 9, day: 19}, salary: 9999 }"
+		val employee = JsonParserReflect.parse(json, Employee::class) as Employee
 
-		assertEquals("Ze Manel", p.name)
-		assertEquals(19, p.birth?.day)
-		assertEquals(9, p.birth?.month)
-		assertEquals(1999, p.birth?.year)
-		assertEquals(9999, p.salary)
+		assertEquals("Ze Manel", employee.name)
+		assertEquals(19, employee.birth?.day)
+		assertEquals(9, employee.birth?.month)
+		assertEquals(1999, employee.birth?.year)
+		assertEquals(9999, employee.salary)
 	}
 
 	@Test
-	fun `Parse Cake`(){
-		val json =
-			"{ expDate: \"1998-11-17\" }"
+	fun `parse object with converter (Cake) works`() {
+		val json = "{ expDate: \"1998-11-17\" }"
+		val cake = JsonParserReflect.parse(json, Cake::class) as Cake
 
-		val c = JsonParserReflect.parse(json, Cake::class) as Cake
-
-		assertEquals(c.expDate, Date(17, 11, 1998))
-		assertEquals(c.mainFlavor, "Cocoa")
+		assertEquals(cake.expDate, Date(17, 11, 1998))
+		assertEquals(cake.mainFlavor, "Cocoa")
 	}
 
 }

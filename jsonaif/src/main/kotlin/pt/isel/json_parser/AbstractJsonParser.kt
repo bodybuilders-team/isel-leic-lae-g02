@@ -1,5 +1,6 @@
-package pt.isel
+package pt.isel.json_parser
 
+import pt.isel.*
 import kotlin.reflect.KClass
 
 

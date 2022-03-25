@@ -3,6 +3,7 @@
  */
 package pt.isel
 
+import pt.isel.json_parser.JsonParserReflect
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

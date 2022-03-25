@@ -1,6 +1,6 @@
-package pt.isel
+package pt.isel.json_parser
 
-// TODO: 21/03/2022 Ask teacher
+
 /**
  * An exception that is thrown when something unexpected happens when parsing.
  * @param message exception cause

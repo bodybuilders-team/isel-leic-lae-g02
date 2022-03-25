@@ -1,5 +1,8 @@
-package pt.isel
+package pt.isel.json_parser
 
+import pt.isel.*
+import pt.isel.json_convert.JsonConvert
+import pt.isel.json_convert.JsonConverter
 import kotlin.reflect.*
 import kotlin.reflect.full.*
 
@@ -17,6 +20,13 @@ object JsonParserReflect : AbstractJsonParser() {
 
 	private const val NULL_STRING = "null"
 
+	/**
+	 * Parses the JSON primitive tokens with a class representation.
+	 * @param tokens JSON tokens
+	 * @param klass represents a class
+	 * @return [klass] instance with [tokens] data
+	 * @throws ParseException if something unexpected happens
+	 */
 	override fun parsePrimitive(tokens: JsonTokens, klass: KClass<*>): Any? {
 		val unparsedValue = tokens.popWordPrimitive().trim()  // TODO: 20/03/2022 Check this "trim" in the future
 		if (unparsedValue == NULL_STRING) return null
@@ -34,8 +44,15 @@ object JsonParserReflect : AbstractJsonParser() {
 	}
 
 
+	/**
+	 * Parses the JSON object tokens with a class representation.
+	 * @param tokens JSON tokens
+	 * @param klass represents a class
+	 * @return [klass] instance with [tokens] data
+	 */
 	override fun parseObject(tokens: JsonTokens, klass: KClass<*>): Any? {
 		tokens.pop(OBJECT_OPEN)
+		tokens.trim() // Added to allow for empty object
 
 		val parsedObject =
 			if (klass.hasNoArgsConstructor())
@@ -60,7 +77,7 @@ object JsonParserReflect : AbstractJsonParser() {
 	 */
 	private fun parseObjectWithInstance(tokens: JsonTokens, klass: KClass<*>): Any {
 		val instance = klass.createInstance()
-		setters.computeIfAbsent(klass, ::loadSetters)
+		setters.computeIfAbsent(klass, JsonParserReflect::loadSetters)
 
 		traverseJsonObject(tokens) { propName ->
 			val setter = setters[klass]?.get(propName) ?: throw ParseException("Parameter $propName doesn't exist")
@@ -82,7 +99,7 @@ object JsonParserReflect : AbstractJsonParser() {
 	 */
 	private fun parseObjectWithCtor(tokens: JsonTokens, klass: KClass<*>): Any? {
 		val constructorParams = mutableMapOf<KParameter, Any?>()
-		params.computeIfAbsent(klass, ::loadParams)
+		params.computeIfAbsent(klass, JsonParserReflect::loadParams)
 
 		traverseJsonObject(tokens) { propName ->
 			val params = params[klass]?.get(propName) ?: throw ParseException("Parameter $propName doesn't exist")
