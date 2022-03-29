@@ -60,7 +60,7 @@ abstract class AbstractJsonParser : JsonParser {
 	 * Parses the JSON array tokens with a class representation.
 	 *
 	 * @param tokens JSON tokens
-	 * @param klass represents a class
+	 * @param klass represents the array elements type
 	 * @return string instance with [tokens] data
 	 */
 	private fun parseArray(tokens: JsonTokens, klass: KClass<*>): List<Any?> {

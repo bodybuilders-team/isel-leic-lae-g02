@@ -1,13 +1,13 @@
 package pt.isel
 
 /**
- * Represents a class property setter.
+ * Represents a setter.
  */
 interface Setter {
 
 	/**
-	 * Sets the target property with the data from [tokens]
-	 * @param target instance where the property will be set
+	 * Sets the target with the data from [tokens]
+	 * @param target where tokens value will be set
 	 * @param tokens JSON tokens
 	 */
 	fun apply(target: Any, tokens: JsonTokens)

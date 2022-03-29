@@ -19,6 +19,22 @@ class JsonParserTest {
 	}
 
 	@Test
+	fun `parse simple object with optional constructor but immutable properties`() {
+		val json = "{ name: \"Ze Manel\", nr: 7353}"
+		val student = JsonParserReflect.parse(json, Student2::class) as Student2
+		assertEquals("Ze Manel", student.name)
+		assertEquals(7353, student.nr)
+	}
+
+	@Test
+	fun `parse simple object with parameter that is not a property`() {
+		val json = "{ name: \"Ze Manel\", nr: 7353}"
+		val student = JsonParserReflect.parse(json, Student3::class) as Student3
+		assertEquals("Ze Manel", student.name)
+		assertEquals(7353, student.nr)
+	}
+
+	@Test
 	fun `parse simple object without primitives works`() {
 		val json = "{ name: \"Ze Manel\"}"
 		val student = JsonParserReflect.parse(json, Student::class) as Student
@@ -186,7 +202,6 @@ class JsonParserTest {
 		for (index in account.transactions.indices)
 			assertEquals(mockTransactions[index], account.transactions[index])
 	}
-
 
 	@Test
 	fun `parse object with an array (Competition) works`() {

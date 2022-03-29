@@ -16,7 +16,6 @@ import kotlin.reflect.full.*
 object JsonParserReflect : AbstractJsonParser() {
 
 	private val setters = mutableMapOf<KClass<*>, Map<String, Setter>>()
-	private val params = mutableMapOf<KClass<*>, Map<String, Params>>()
 
 	private const val NULL_STRING = "null"
 
@@ -54,11 +53,13 @@ object JsonParserReflect : AbstractJsonParser() {
 		tokens.pop(OBJECT_OPEN)
 		tokens.trim() // Added to allow for empty object
 
-		val parsedObject =
-			if (klass.hasNoArgsConstructor())
-				parseObjectWithInstance(tokens, klass)
-			else
-				parseObjectWithCtor(tokens, klass)
+		setters.computeIfAbsent(klass, JsonParserReflect::loadSetters)
+
+		val constructor = klass.getOptionalConstructor()
+
+		val parsedObject = if (constructor != null)
+			parseObjectWithInstance(tokens, klass, constructor)
+		else parseObjectWithCtor(tokens, klass)
 
 		tokens.pop(OBJECT_END)
 		return parsedObject
@@ -75,9 +76,8 @@ object JsonParserReflect : AbstractJsonParser() {
 	 * @return parsed object
 	 * @throws ParseException if something unexpected happens
 	 */
-	private fun parseObjectWithInstance(tokens: JsonTokens, klass: KClass<*>): Any {
+	private fun parseObjectWithInstance(tokens: JsonTokens, klass: KClass<*>, constructor: KFunction<*>): Any {
 		val instance = klass.createInstance()
-		setters.computeIfAbsent(klass, JsonParserReflect::loadSetters)
 
 		traverseJsonObject(tokens) { propName ->
 			val setter = setters[klass]?.get(propName) ?: throw ParseException("Parameter $propName doesn't exist")
@@ -99,11 +99,10 @@ object JsonParserReflect : AbstractJsonParser() {
 	 */
 	private fun parseObjectWithCtor(tokens: JsonTokens, klass: KClass<*>): Any? {
 		val constructorParams = mutableMapOf<KParameter, Any?>()
-		params.computeIfAbsent(klass, JsonParserReflect::loadParams)
 
 		traverseJsonObject(tokens) { propName ->
-			val params = params[klass]?.get(propName) ?: throw ParseException("Parameter $propName doesn't exist")
-			params.add(params = constructorParams, tokens)
+			val setter = setters[klass]?.get(propName) ?: throw ParseException("Parameter $propName doesn't exist")
+			setter.apply(target = constructorParams, tokens)
 		}
 
 		return klass.primaryConstructor?.callBy(constructorParams)
@@ -127,34 +126,6 @@ object JsonParserReflect : AbstractJsonParser() {
 
 
 	/**
-	 * Loads a map with parameter name as key and the parameter itself as a value
-	 * for all parameters in the primary constructor of a given [KClass]
-	 *
-	 * @param klass representation of a class
-	 * @return map for accessing a parameter by its name
-	 */
-	private fun loadParams(klass: KClass<*>): Map<String, Params> =
-		klass.primaryConstructor!!.parameters.associate { kParam -> // TODO: 21/03/2022 Iterate for all constructors
-			Pair(
-				getJsonPropertyName(kParam),
-				object : Params {
-					override fun add(params: MutableMap<KParameter, Any?>, tokens: JsonTokens) {
-						val converterAnnotation = kParam.findAnnotation<JsonConvert>()
-
-						val propValue =
-							if (converterAnnotation != null)
-								getPropValueFromConverter(converterAnnotation, tokens)
-							else
-								parse(tokens, kParam.type)
-
-						params[kParam] = propValue
-					}
-				}
-			)
-		}
-
-
-	/**
 	 * Gets the property value calling the convert function in [convertAnnotation] converter.
 	 * @param convertAnnotation annotation with converter
 	 * @param tokens JSON tokens
@@ -174,20 +145,34 @@ object JsonParserReflect : AbstractJsonParser() {
 			return convertFunction.call(objectInstance, parse(tokens, jsonType))
 		}
 
-
 	/**
-	 * Gets the [klass] properties setters.
+	 * Loads a map with parameter name as key and the parameter itself as a value
+	 * for all parameters in the primary constructor of a given [KClass]
+	 *
 	 * @param klass representation of a class
-	 * @return map with pairs PropertyName : PropertySetter
+	 * @return map for accessing a parameter by its name
 	 */
 	private fun loadSetters(klass: KClass<*>): Map<String, Setter> =
-		klass.memberProperties.associate { kProp ->
+		klass.primaryConstructor!!.parameters.associate { kParam ->
 			Pair(
-				getJsonPropertyName(kProp),
+				getJsonPropertyName(kParam),
 				object : Setter {
+					val kProp = (klass.memberProperties.firstOrNull { it.name == kParam.name }
+						?: throw ParseException("Property ${kParam.name} doesn't exist"))
+
 					override fun apply(target: Any, tokens: JsonTokens) {
-						val propValue = parse(tokens, kProp.returnType)
-						(kProp as KMutableProperty<*>).setter.call(target, propValue)
+						val converterAnnotation = kParam.findAnnotation<JsonConvert>()
+
+						val propValue =
+							if (converterAnnotation != null)
+								getPropValueFromConverter(converterAnnotation, tokens)
+							else
+								parse(tokens, kParam.type)
+
+						if (target is MutableMap<*, *>)
+							(target as MutableMap<KParameter, Any?>)[kParam] = propValue
+						else
+							(kProp as KMutableProperty<*>).setter.call(target, propValue)
 					}
 				}
 			)
@@ -223,8 +208,13 @@ object JsonParserReflect : AbstractJsonParser() {
  * Checks if a KClass has constructors with no arguments.
  * @return true if the class has one or more constructors with no arguments
  */
-fun <T : Any> KClass<T>.hasNoArgsConstructor(): Boolean =
-	constructors.any { constructor ->
-		constructor.parameters.all(KParameter::isOptional)
+fun <T : Any> KClass<T>.getOptionalConstructor(): KFunction<T>? {
+	val propMap = declaredMemberProperties.associateBy { it.name }
+
+	return constructors.firstOrNull { constructor ->
+		constructor.valueParameters.all {
+			it.isOptional && propMap.containsKey(it.name) && propMap[it.name] is KMutableProperty<*>
+		}
 	}
+}
 
