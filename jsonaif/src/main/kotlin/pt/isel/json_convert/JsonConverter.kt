@@ -5,9 +5,9 @@ package pt.isel.json_convert
  */
 interface JsonConverter<K, T> {
 
-	/**
-	 * Convert function.
-	 * @param from value to convert
-	 */
-	fun convert(from: K): T
+    /**
+     * Convert function.
+     * @param from value to convert
+     */
+    fun convert(from: K): T
 }
