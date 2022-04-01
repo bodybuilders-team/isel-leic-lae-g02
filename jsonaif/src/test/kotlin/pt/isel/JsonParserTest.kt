@@ -1,8 +1,8 @@
 package pt.isel
 
 import org.junit.Test
-import pt.isel.json_parser.JsonParserReflect
-import pt.isel.json_parser.ParseException
+import pt.isel.jsonParser.JsonParserReflect
+import pt.isel.jsonParser.ParseException
 import pt.isel.sample.Account
 import pt.isel.sample.Bike
 import pt.isel.sample.BikeWithOwner
@@ -160,6 +160,7 @@ class JsonParserTest {
     @Test
     fun `parse array works`() {
         val json = "[{name: \"Ze Manel\"}, {name: \"Candida Raimunda\"}, {name: \"Kata Mandala\"}]"
+
         @Suppress("UNCHECKED_CAST")
         val persons = JsonParserReflect.parse(json, Person::class) as List<Person>
 
@@ -172,6 +173,7 @@ class JsonParserTest {
     @Test
     fun `parse empty array works`() {
         val json = "[ ]"
+
         @Suppress("UNCHECKED_CAST")
         val persons = JsonParserReflect.parse(json, Person::class) as List<Person>
 
@@ -211,6 +213,7 @@ class JsonParserTest {
         for (index in account.transactions.indices)
             assertEquals(mockTransactions[index], account.transactions[index])
     }
+
     @Test
     fun `parse object with an array (Competition) works`() {
         val bikesWithOwners = listOf(
@@ -257,7 +260,7 @@ class JsonParserTest {
     }
 
     @Test
-    fun `parse object with other property mame (Employee) works`() {
+    fun `parse object with other property name (Employee) works`() {
         val json = "{ name: \"Ze Manel\", birth_date: { year: 1999, month: 9, day: 19}, salary: 9999 }"
         val employee = JsonParserReflect.parse(json, Employee::class) as Employee
 
@@ -276,4 +279,9 @@ class JsonParserTest {
         assertEquals(cake.expDate, Date(17, 11, 1998))
         assertEquals(cake.mainFlavor, "Cocoa")
     }
+
+    // TODO: 01/04/2022 Test JsonConvert without convert function
+    // TODO: 01/04/2022 Test JsonConvert without being implemented with interface
+    // TODO: 01/04/2022 Test JsonConvert without being object
+    // TODO: 01/04/2022 Test not parseable
 }

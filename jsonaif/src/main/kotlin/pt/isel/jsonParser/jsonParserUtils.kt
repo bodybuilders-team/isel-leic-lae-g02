@@ -1,4 +1,4 @@
-package pt.isel.json_parser
+package pt.isel.jsonParser
 
 import pt.isel.JsonTokens
 import java.lang.reflect.GenericSignatureFormatError
@@ -24,10 +24,8 @@ fun parse(tokens: JsonTokens, type: KType): Any? {
         if (type.classifier == List::class) {
             val listObjectType = (
                 type.arguments.first().type
-                    ?: throw GenericSignatureFormatError(
-                        "List generics cannot have star projection types"
-                    )
-                ).classifier!! as KClass<*>
+                    ?: throw GenericSignatureFormatError("List generics cannot have star projection types")
+                ).classifier as KClass<*>
 
             JsonParserReflect.parse(tokens, listObjectType)
         } else

@@ -1,4 +1,4 @@
-package pt.isel.json_convert
+package pt.isel.jsonConvert
 
 /**
  * JSON converter from a type K to type T.

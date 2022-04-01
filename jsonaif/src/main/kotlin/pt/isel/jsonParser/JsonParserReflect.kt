@@ -1,24 +1,25 @@
-package pt.isel.json_parser
+package pt.isel.jsonParser
 
 import pt.isel.COLON
 import pt.isel.JsonTokens
 import pt.isel.OBJECT_END
 import pt.isel.OBJECT_OPEN
 import pt.isel.Setter
-import pt.isel.getJsonPropertyName
+import pt.isel.jsonProperty.getJsonPropertyName
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
 import kotlin.reflect.full.createInstance
+import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
 
-// TODO: 21/03/2022 REMOVE DOUBLE BANG OPERATORS !!
 /**
  * JSON parser using reflection.
  * @property setters for each domain class we keep a Map<String, Setter> relating properties names with their setters
  */
 object JsonParserReflect : AbstractJsonParser() {
 
-    private val setters = mutableMapOf<KClass<*>, Map<String, Setter>>()
+    private val setters = mutableMapOf<KClass<*>, Map<String?, Setter>>()
+    private val parseableKClasses = mutableSetOf<KClass<*>>()
 
     private const val NULL_STRING = "null"
 
@@ -33,7 +34,7 @@ object JsonParserReflect : AbstractJsonParser() {
         val unparsedValue = tokens.popWordPrimitive().trim()
         if (unparsedValue == NULL_STRING) return null
 
-        val parseException = ParseException.unexpectedClass(unparsedValue, klass.qualifiedName!!)
+        val parseException = ParseException.unexpectedClass(unparsedValue, klass.qualifiedName)
         val parser = basicParser[klass] ?: throw parseException
 
         try {
@@ -55,17 +56,40 @@ object JsonParserReflect : AbstractJsonParser() {
         tokens.pop(OBJECT_OPEN)
         tokens.trim() // Added to allow for empty object
 
-        if (!klass.isData)
-            throw ParseException("Class ${klass.qualifiedName} is not a data class")
+        if (!isParseable(klass))
+            throw ParseException(
+                "Class ${klass.qualifiedName} is not valid to parse: " +
+                    "all parameters of the primary constructor must be properties"
+            )
 
         setters.computeIfAbsent(klass, JsonParserReflect::loadSetters)
 
-        val parsedObject = if (klass.hasOptionalPrimaryConstructor())
-            parseObjectWithInstance(tokens, klass)
-        else parseObjectWithCtor(tokens, klass)
+        val parsedObject =
+            if (klass.hasOptionalPrimaryConstructor())
+                parseObjectWithInstance(tokens, klass)
+            else
+                parseObjectWithCtor(tokens, klass)
 
         tokens.pop(OBJECT_END)
         return parsedObject
+    }
+
+    /**
+     * Checks if a KClass is parseable: all parameters of the primary constructor must be properties.
+     *
+     * @param klass represents a class
+     * @return true if the [klass] is valid to parse
+     */
+    private fun isParseable(klass: KClass<*>): Boolean {
+        if (klass in parseableKClasses)
+            return true
+
+        val properties = klass.memberProperties.associateBy { kProp -> kProp.name }
+
+        return klass.primaryConstructor?.parameters
+            ?.all { kParam -> kParam.name in properties }
+            .also { parseableKClasses.add(klass) }
+            ?: false
     }
 
     /**
@@ -81,10 +105,7 @@ object JsonParserReflect : AbstractJsonParser() {
     private fun parseObjectWithInstance(tokens: JsonTokens, klass: KClass<*>): Any {
         val instance = klass.createInstance()
 
-        traverseJsonObject(tokens) { propName ->
-            val setter = setters[klass]?.get(propName) ?: throw ParseException("Property $propName doesn't exist")
-            setter.apply(target = instance, tokens)
-        }
+        traverseJsonObject(tokens, klass, instance)
 
         return instance
     }
@@ -101,25 +122,26 @@ object JsonParserReflect : AbstractJsonParser() {
     private fun parseObjectWithCtor(tokens: JsonTokens, klass: KClass<*>): Any {
         val constructorParams = mutableMapOf<KParameter, Any?>()
 
-        traverseJsonObject(tokens) { propName ->
-            val setter = setters[klass]?.get(propName) ?: throw ParseException("Property $propName doesn't exist")
-            setter.apply(target = constructorParams, tokens)
-        }
+        traverseJsonObject(tokens, klass, constructorParams)
 
         return klass.primaryConstructor?.callBy(constructorParams)
             ?: throw ParseException("Klass ${klass.primaryConstructor} not have a primary constructor")
     }
 
     /**
-     * Iterates through the JSON object and calls a [propCb] for each property.
+     * Iterates through the JSON object, creates a setter for each property, and applies it to a specific target.
      *
      * @param tokens JSON tokens
-     * @param propCb callback to be called with each property
+     * @param klass represents a class
+     * @param target target to apply setter
      */
-    private fun traverseJsonObject(tokens: JsonTokens, propCb: (String) -> Unit) {
+    private fun traverseJsonObject(tokens: JsonTokens, klass: KClass<*>, target: Any) {
         while (tokens.current != OBJECT_END) {
             val propName = tokens.popWordFinishedWith(COLON).trim()
-            propCb(propName)
+            val setter = setters[klass]?.get(propName)
+                ?: throw ParseException("Property $propName doesn't exist")
+
+            setter.apply(target, tokens)
 
             popCommaIfExists(tokens)
         }
@@ -132,7 +154,7 @@ object JsonParserReflect : AbstractJsonParser() {
      * @param klass representation of a class
      * @return map for accessing a parameter by its name
      */
-    private fun loadSetters(klass: KClass<*>): Map<String, Setter> =
+    private fun loadSetters(klass: KClass<*>): Map<String?, Setter> =
         klass.primaryConstructor?.parameters?.associate { kParam ->
             Pair(
                 getJsonPropertyName(kParam),

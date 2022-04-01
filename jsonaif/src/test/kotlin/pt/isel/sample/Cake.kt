@@ -1,7 +1,7 @@
 package pt.isel.sample
 
-import pt.isel.json_convert.JsonConvert
-import pt.isel.json_convert.JsonConverter
+import pt.isel.jsonConvert.JsonConvert
+import pt.isel.jsonConvert.JsonConverter
 
 data class Cake(@JsonConvert(JsonToDate::class) val expDate: Date, val mainFlavor: String = "Cocoa")
 

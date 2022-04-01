@@ -21,29 +21,51 @@ class JsonTokens(json: String) {
     val current: Char
         get() = src[index]
 
-    fun tryAdvance(): Boolean {
+    /**
+     * Tries to advance in the [src] indexes.
+     * @return true if the advance succeeded
+     */
+    private fun tryAdvance(): Boolean {
         index++
         return index < src.size
     }
 
+    /**
+     * Trims the [src].
+     */
     fun trim() {
         while (src[index] == ' ')
             if (!tryAdvance())
                 break
     }
 
+    /**
+     * Pops a char from [src] and advances.
+     * @return popped char
+     */
     fun pop(): Char {
         val token = src[index]
         index++
         return token
     }
 
+    /**
+     * Pops the [expected] char from [src] and advances.
+     * @param expected expected char to pop
+     * @return popped char
+     * @throws Exception if the current char is not the expected
+     */
     fun pop(expected: Char) {
         if (current != expected)
             throw Exception("Expected $expected but found $current")
         index++
     }
 
+    /**
+     * Pops a word finished with [delimiter].
+     * @param delimiter word delimiter
+     * @return popped word
+     */
     fun popWordFinishedWith(delimiter: Char): String {
         trim()
         var acc = ""
@@ -56,6 +78,10 @@ class JsonTokens(json: String) {
         return acc
     }
 
+    /**
+     * Pops a primitive word.
+     * @return popped word
+     */
     fun popWordPrimitive(): String {
         trim()
         var acc = ""
@@ -67,7 +93,11 @@ class JsonTokens(json: String) {
         return acc
     }
 
-    private fun isEnd(curr: Char): Boolean {
-        return curr == OBJECT_END || curr == ARRAY_END || curr == COMMA
-    }
+    /**
+     * Checks if the current char is a delimiter.
+     * @param curr current char
+     * @return true if the current char is a delimiter
+     */
+    private fun isEnd(curr: Char): Boolean =
+        curr == OBJECT_END || curr == ARRAY_END || curr == COMMA
 }
