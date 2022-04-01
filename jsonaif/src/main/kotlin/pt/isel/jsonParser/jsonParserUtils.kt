@@ -38,8 +38,9 @@ fun parse(tokens: JsonTokens, type: KType): Any? {
 }
 
 /**
- * @return true if a KClass's primary constructor are all
- * mutable properties with default values
+ * Checks if a KClass's primary constructor has all properties mutable and with default values.
+ *
+ * @return true if a KClass's primary constructor are all mutable properties with default values
  */
 fun <T : Any> KClass<T>.hasOptionalPrimaryConstructor(): Boolean {
     val propMap = declaredMemberProperties.associateBy { it.name }

@@ -4,11 +4,17 @@ import pt.isel.COLON
 import pt.isel.JsonTokens
 import pt.isel.OBJECT_END
 import pt.isel.OBJECT_OPEN
-import pt.isel.Setter
+import pt.isel.jsonConvert.JsonConvert
+import pt.isel.jsonParser.setter.AnnotatedParamSetter
+import pt.isel.jsonParser.setter.AnnotatedPropertySetter
+import pt.isel.jsonParser.setter.ParamSetter
+import pt.isel.jsonParser.setter.PropertySetter
+import pt.isel.jsonParser.setter.Setter
 import pt.isel.jsonProperty.getJsonPropertyName
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
 import kotlin.reflect.full.createInstance
+import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
 
@@ -62,10 +68,11 @@ object JsonParserReflect : AbstractJsonParser() {
                     "all parameters of the primary constructor must be properties"
             )
 
-        setters.computeIfAbsent(klass, JsonParserReflect::loadSetters)
+        val hasNoArgsCtor = klass.hasOptionalPrimaryConstructor()
+        setters.computeIfAbsent(klass) { loadSetters(klass, hasNoArgsCtor) }
 
         val parsedObject =
-            if (klass.hasOptionalPrimaryConstructor())
+            if (hasNoArgsCtor)
                 parseObjectWithInstance(tokens, klass)
             else
                 parseObjectWithCtor(tokens, klass)
@@ -152,13 +159,35 @@ object JsonParserReflect : AbstractJsonParser() {
      * for all parameters in the primary constructor of a given [KClass]
      *
      * @param klass representation of a class
+     * @param hasNoArgsCtor true if the [klass]' primary constructor are all mutable properties with default values
+     *
      * @return map for accessing a parameter by its name
      */
-    private fun loadSetters(klass: KClass<*>): Map<String?, Setter> =
+    private fun loadSetters(klass: KClass<*>, hasNoArgsCtor: Boolean): Map<String?, Setter> =
         klass.primaryConstructor?.parameters?.associate { kParam ->
             Pair(
                 getJsonPropertyName(kParam),
-                PropertySetter(klass, kParam)
+                getSetter(klass, kParam, hasNoArgsCtor)
             )
         } ?: throw ParseException("Klass ${klass.primaryConstructor} not have a primary constructor")
+
+    /**
+     * Gets the [kParam] setter.
+     *
+     * @param klass representation of a class
+     * @param kParam param to get setter
+     * @param hasNoArgsCtor true if the [klass]' primary constructor are all mutable properties with default values
+     *
+     * @return [kParam] setter
+     */
+    private fun getSetter(klass: KClass<*>, kParam: KParameter, hasNoArgsCtor: Boolean): Setter {
+        val isAnnotated = kParam.hasAnnotation<JsonConvert>()
+
+        return when {
+            isAnnotated && hasNoArgsCtor -> AnnotatedPropertySetter(klass, kParam)
+            isAnnotated && !hasNoArgsCtor -> AnnotatedParamSetter(kParam)
+            !isAnnotated && hasNoArgsCtor -> PropertySetter(klass, kParam)
+            else -> ParamSetter(kParam)
+        }
+    }
 }

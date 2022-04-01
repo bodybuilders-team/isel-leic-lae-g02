@@ -1,4 +1,6 @@
-package pt.isel
+package pt.isel.jsonParser.setter
+
+import pt.isel.JsonTokens
 
 /**
  * Represents a setter.
