@@ -21,11 +21,14 @@ abstract class AbstractJsonParser : JsonParser {
      * @param klass represents a class
      * @return [klass] instance with [tokens] data
      */
-    fun parse(tokens: JsonTokens, klass: KClass<*>) = when (tokens.current) {
-        OBJECT_OPEN -> parseObject(tokens, klass)
-        ARRAY_OPEN -> parseArray(tokens, klass)
-        DOUBLE_QUOTES -> parseString(tokens)
-        else -> parsePrimitive(tokens, klass)
+    fun parse(tokens: JsonTokens, klass: KClass<*>): Any? {
+        tokens.trim()
+        return when (tokens.current) {
+            OBJECT_OPEN -> parseObject(tokens, klass)
+            ARRAY_OPEN -> parseArray(tokens, klass)
+            DOUBLE_QUOTES -> parseString(tokens)
+            else -> parsePrimitive(tokens, klass)
+        }
     }
 
     /**

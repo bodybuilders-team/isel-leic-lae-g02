@@ -5,6 +5,7 @@ import pt.isel.JsonTokens
 import pt.isel.OBJECT_END
 import pt.isel.OBJECT_OPEN
 import pt.isel.jsonConvert.JsonConvert
+import pt.isel.jsonParser.JsonParserReflect.setters
 import pt.isel.jsonParser.setter.AnnotatedParamSetter
 import pt.isel.jsonParser.setter.AnnotatedPropertySetter
 import pt.isel.jsonParser.setter.ParamSetter
