@@ -1,10 +1,11 @@
-package pt.isel.jsonParser.setter
+package pt.isel.jsonParser.setter.property
 
 import pt.isel.JsonTokens
 import pt.isel.jsonConvert.JsonConvert
 import pt.isel.jsonConvert.JsonConvertData
 import pt.isel.jsonParser.ParseException
-import pt.isel.jsonParser.parse
+import pt.isel.jsonParser.setter.AbstractSetter
+import pt.isel.jsonParser.setter.Setter
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KParameter
@@ -19,7 +20,7 @@ import kotlin.reflect.full.memberProperties
  * @property jsonConvertData Data used to convert the JSON value to the property type.
  * If null, the property type is used for parsing.
  */
-class AnnotatedPropertySetter(klass: KClass<*>, private val kParam: KParameter) : Setter {
+class AnnotatedPropertySetter(klass: KClass<*>, private val kParam: KParameter) : AbstractSetter(kParam), Setter {
     private val kProp = klass
         .memberProperties
         .firstOrNull { it.name == kParam.name }
@@ -28,7 +29,8 @@ class AnnotatedPropertySetter(klass: KClass<*>, private val kParam: KParameter) 
     private val jsonConvertData = kParam.findAnnotation<JsonConvert>()?.let(::JsonConvertData)
 
     override fun apply(target: Any, tokens: JsonTokens) {
-        val propValue = jsonConvertData?.parse(tokens) ?: parse(tokens, kParam.type)
+        val propValue = jsonConvertData?.convert(parse(tokens))
+            ?: parse(tokens)
 
         (kProp as KMutableProperty<*>).setter.call(target, propValue)
     }

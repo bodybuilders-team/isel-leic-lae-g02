@@ -1,7 +1,8 @@
-package pt.isel.jsonParser.setter
+package pt.isel.jsonParser.setter.param
 
 import pt.isel.JsonTokens
-import pt.isel.jsonParser.parse
+import pt.isel.jsonParser.setter.AbstractSetter
+import pt.isel.jsonParser.setter.Setter
 import kotlin.reflect.KParameter
 
 /**
@@ -9,10 +10,10 @@ import kotlin.reflect.KParameter
  *
  * @property kParam the parameter
  */
-class ParamSetter(private val kParam: KParameter) : Setter {
+class ParamSetter(private val kParam: KParameter) : AbstractSetter(kParam), Setter {
 
     override fun apply(target: Any, tokens: JsonTokens) {
-        val propValue = parse(tokens, kParam.type)
+        val propValue = parse(tokens)
 
         @Suppress("UNCHECKED_CAST")
         val paramMap: MutableMap<KParameter, Any?> = target as MutableMap<KParameter, Any?>

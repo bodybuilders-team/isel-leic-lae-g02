@@ -6,11 +6,11 @@ import pt.isel.OBJECT_END
 import pt.isel.OBJECT_OPEN
 import pt.isel.jsonConvert.JsonConvert
 import pt.isel.jsonParser.JsonParserReflect.setters
-import pt.isel.jsonParser.setter.AnnotatedParamSetter
-import pt.isel.jsonParser.setter.AnnotatedPropertySetter
-import pt.isel.jsonParser.setter.ParamSetter
-import pt.isel.jsonParser.setter.PropertySetter
 import pt.isel.jsonParser.setter.Setter
+import pt.isel.jsonParser.setter.param.AnnotatedParamSetter
+import pt.isel.jsonParser.setter.param.ParamSetter
+import pt.isel.jsonParser.setter.property.AnnotatedPropertySetter
+import pt.isel.jsonParser.setter.property.PropertySetter
 import pt.isel.jsonProperty.getJsonPropertyName
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter

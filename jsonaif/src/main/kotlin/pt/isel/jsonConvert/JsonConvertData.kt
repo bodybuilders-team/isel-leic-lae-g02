@@ -1,6 +1,5 @@
 package pt.isel.jsonConvert
 
-import pt.isel.JsonTokens
 import java.lang.reflect.GenericSignatureFormatError
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
@@ -44,6 +43,6 @@ class JsonConvertData(convertAnnotation: JsonConvert) {
     /**
      * Parses a JSON value to a Kotlin object based on a [converterClass].
      */
-    fun parse(jsonTokens: JsonTokens): Any? =
-        convertFunction.call(obj, pt.isel.jsonParser.parse(jsonTokens, jsonType))
+    fun convert(convObject: Any?): Any? =
+        convertFunction.call(obj, convObject)
 }
