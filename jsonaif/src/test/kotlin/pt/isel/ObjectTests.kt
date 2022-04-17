@@ -3,6 +3,7 @@ package pt.isel
 import pt.isel.jsonParser.JsonParserReflect
 import pt.isel.jsonParser.ParseException
 import pt.isel.sample.Classroom
+import pt.isel.sample.MissingPrimaryConstructor
 import pt.isel.sample.Person
 import pt.isel.sample.Student
 import pt.isel.sample.Student2
@@ -118,6 +119,24 @@ class ObjectTests {
         val json = "{ name: \"LAE\" }"
 
         assertFailsWith<IllegalArgumentException> {
+            JsonParserReflect.parse(json, Classroom::class) as Classroom
+        }
+    }
+
+    @Test
+    fun `Parse object with no primary constructor throws`() {
+        val json = "{ i: 50 }"
+
+        assertFailsWith<ParseException> {
+            JsonParserReflect.parse(json, MissingPrimaryConstructor::class) as MissingPrimaryConstructor
+        }
+    }
+
+    @Test
+    fun `Parse object with null on a not nullable property throws`() {
+        val json = "{ name: \"LAE\", students: null }"
+
+        assertFailsWith<ParseException> {
             JsonParserReflect.parse(json, Classroom::class) as Classroom
         }
     }

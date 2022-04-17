@@ -1,12 +1,12 @@
 package pt.isel
 
 import pt.isel.jsonParser.JsonParserReflect
-import pt.isel.sample.Cake
-import pt.isel.sample.Cake2
-import pt.isel.sample.Cake3
-import pt.isel.sample.Cake4
-import pt.isel.sample.Cake5
 import pt.isel.sample.Date
+import pt.isel.sample.jsonconvert.Cake
+import pt.isel.sample.jsonconvert.Cake2
+import pt.isel.sample.jsonconvert.Cake3
+import pt.isel.sample.jsonconvert.Cake4
+import pt.isel.sample.jsonconvert.Cake5
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith

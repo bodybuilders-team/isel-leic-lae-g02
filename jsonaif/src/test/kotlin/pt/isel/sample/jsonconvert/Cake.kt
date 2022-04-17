@@ -1,7 +1,8 @@
-package pt.isel.sample
+package pt.isel.sample.jsonconvert
 
 import pt.isel.jsonConvert.JsonConvert
 import pt.isel.jsonConvert.JsonConverter
+import pt.isel.sample.Date
 
 data class Cake(@JsonConvert(JsonToDate::class) var expDate: Date = Date(1, 1, 2000), var mainFlavor: String = "Cocoa")
 

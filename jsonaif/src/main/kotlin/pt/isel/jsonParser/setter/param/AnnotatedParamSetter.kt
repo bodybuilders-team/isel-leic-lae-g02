@@ -3,6 +3,7 @@ package pt.isel.jsonParser.setter.param
 import pt.isel.JsonTokens
 import pt.isel.jsonConvert.JsonConvert
 import pt.isel.jsonConvert.JsonConvertData
+import pt.isel.jsonParser.ParseException
 import pt.isel.jsonParser.setter.AbstractSetter
 import pt.isel.jsonParser.setter.Setter
 import kotlin.reflect.KParameter
@@ -18,10 +19,10 @@ import kotlin.reflect.full.findAnnotation
 class AnnotatedParamSetter(private val kParam: KParameter) : AbstractSetter(kParam), Setter {
 
     private val jsonConvertData = kParam.findAnnotation<JsonConvert>()?.let(::JsonConvertData)
+        ?: throw ParseException("Parameter ${kParam.name} doesn't have a JsonConvert annotation")
 
     override fun apply(target: Any, tokens: JsonTokens) {
-        val propValue = jsonConvertData?.convert(parse(tokens))
-            ?: parse(tokens)
+        val propValue = jsonConvertData.convert(parse(tokens))
 
         @Suppress("UNCHECKED_CAST")
         val paramMap: MutableMap<KParameter, Any?> = target as MutableMap<KParameter, Any?>

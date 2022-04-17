@@ -27,10 +27,10 @@ class AnnotatedPropertySetter(klass: KClass<*>, private val kParam: KParameter) 
         ?: throw ParseException("Property ${kParam.name} doesn't exist")
 
     private val jsonConvertData = kParam.findAnnotation<JsonConvert>()?.let(::JsonConvertData)
+        ?: throw ParseException("Property ${kParam.name} doesn't have a JsonConvert annotation")
 
     override fun apply(target: Any, tokens: JsonTokens) {
-        val propValue = jsonConvertData?.convert(parse(tokens))
-            ?: parse(tokens)
+        val propValue = jsonConvertData.convert(parse(tokens))
 
         (kProp as KMutableProperty<*>).setter.call(target, propValue)
     }

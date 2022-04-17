@@ -10,7 +10,7 @@ import kotlin.reflect.KParameter
 abstract class AbstractSetter(private val kParam: KParameter) {
     private val typeKlass: KClass<*> = kParam.type.classifier as KClass<*>
 
-    private val listObjectType: KClass<*>? = calculateListObjectType()
+    private val listObjectTypeKlass: KClass<*>? = calculateListObjectType()
     private val isNullable = kParam.type.isMarkedNullable
 
     private fun calculateListObjectType(): KClass<*>? {
@@ -27,8 +27,8 @@ abstract class AbstractSetter(private val kParam: KParameter) {
     }
 
     fun parse(tokens: JsonTokens): Any? {
-        val propValue = if (listObjectType != null)
-            JsonParserReflect.parse(tokens, listObjectType)
+        val propValue = if (listObjectTypeKlass != null)
+            JsonParserReflect.parse(tokens, listObjectTypeKlass)
         else
             JsonParserReflect.parse(tokens, typeKlass)
 

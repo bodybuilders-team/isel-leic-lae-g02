@@ -1,8 +1,8 @@
 package pt.isel
 
-import org.junit.Test
 import pt.isel.jsonParser.JsonParserReflect
 import pt.isel.jsonParser.ParseException
+import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
@@ -39,6 +39,13 @@ class PrimitivesTests {
         val unparsedNr = "123,"
         val nr = JsonParserReflect.parse(unparsedNr, Short::class) as Short
         assertEquals(123, nr)
+    }
+
+    @Test
+    fun `Parse byte number works`() {
+        val unparsedNr = "90,"
+        val nr = JsonParserReflect.parse(unparsedNr, Byte::class) as Byte
+        assertEquals(90, nr)
     }
 
     @Test
@@ -95,6 +102,14 @@ class PrimitivesTests {
         val unparsedNr = "true,"
         assertFailsWith<ParseException> {
             JsonParserReflect.parse(unparsedNr, Int::class)
+        }
+    }
+
+    @Test
+    fun `Parse non-boolean value as boolean throws`() {
+        val unparsedNr = "1243,"
+        assertFailsWith<ParseException> {
+            JsonParserReflect.parse(unparsedNr, Boolean::class)
         }
     }
 
