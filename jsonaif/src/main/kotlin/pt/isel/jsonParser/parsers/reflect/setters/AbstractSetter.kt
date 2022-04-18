@@ -1,8 +1,8 @@
-package pt.isel.jsonParser.setter
+package pt.isel.jsonParser.parsers.reflect.setters
 
 import pt.isel.JsonTokens
-import pt.isel.jsonParser.JsonParserReflect
 import pt.isel.jsonParser.ParseException
+import pt.isel.jsonParser.parsers.reflect.JsonParserReflect
 import java.lang.reflect.GenericSignatureFormatError
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter

@@ -7,7 +7,7 @@ import pt.isel.DOUBLE_QUOTES
 import pt.isel.JsonTokens
 import pt.isel.OBJECT_END
 import pt.isel.OBJECT_OPEN
-import pt.isel.jsonParser.setter.Setter
+import pt.isel.jsonParser.parsers.reflect.setters.Setter
 import pt.isel.jsonProperty.getJsonPropertyName
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
@@ -35,7 +35,7 @@ abstract class AbstractJsonParser : JsonParser {
      * @param klass represents a class
      * @return [klass] instance with [tokens] data
      */
-    internal fun parse(tokens: JsonTokens, klass: KClass<*>): Any? {
+    fun parse(tokens: JsonTokens, klass: KClass<*>): Any? {
         tokens.trim()
         return when (tokens.current) {
             OBJECT_OPEN -> parseObject(tokens, klass)

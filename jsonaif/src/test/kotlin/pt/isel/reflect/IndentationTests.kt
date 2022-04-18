@@ -1,6 +1,6 @@
-package pt.isel
+package pt.isel.reflect
 
-import pt.isel.jsonParser.JsonParserReflect
+import pt.isel.jsonParser.parsers.reflect.JsonParserReflect
 import pt.isel.sample.Person
 import pt.isel.sample.Student
 import kotlin.test.Test

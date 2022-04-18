@@ -1,6 +1,6 @@
-package pt.isel
+package pt.isel.reflect
 
-import pt.isel.jsonParser.JsonParserReflect
+import pt.isel.jsonParser.parsers.reflect.JsonParserReflect
 import pt.isel.sample.Account
 import pt.isel.sample.Bike
 import pt.isel.sample.BikeWithOwner

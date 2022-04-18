@@ -1,4 +1,4 @@
-package pt.isel.jsonParser.setter
+package pt.isel.jsonParser.parsers.reflect.setters
 
 import pt.isel.JsonTokens
 

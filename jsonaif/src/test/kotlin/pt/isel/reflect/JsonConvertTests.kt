@@ -1,6 +1,6 @@
-package pt.isel
+package pt.isel.reflect
 
-import pt.isel.jsonParser.JsonParserReflect
+import pt.isel.jsonParser.parsers.reflect.JsonParserReflect
 import pt.isel.sample.Date
 import pt.isel.sample.jsonconvert.Cake
 import pt.isel.sample.jsonconvert.Cake2

@@ -64,6 +64,7 @@ interface Setter {
 ```
 
 Por exemplo, na estrutura de dados seguinte cada classe de domínio é mapeada num conjunto de pares: nome da propriedade
+
 - `Setter`
 
 ```kotlin

@@ -5,6 +5,7 @@ import pt.isel.COMMA
 import pt.isel.JsonTokens
 import java.io.File
 import java.net.URLClassLoader
+import java.util.Locale
 import javax.tools.ToolProvider
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty
@@ -58,3 +59,6 @@ fun loadAndCreateInstance(source: JavaFile): Any {
         .getDeclaredConstructor()
         .newInstance()
 }
+
+fun String.capitalize() =
+    replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
