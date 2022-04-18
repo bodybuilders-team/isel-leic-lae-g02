@@ -1,12 +1,10 @@
 package pt.isel.jsonParser.parsers.reflect.setters
 
 import pt.isel.jsonConvert.JsonConvert
-import pt.isel.jsonConvert.getJsonPropertyType
 import pt.isel.jsonParser.ParseException
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
-import kotlin.reflect.KType
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.memberFunctions
 
@@ -24,8 +22,6 @@ abstract class AnnotatedAbstractSetter(private val kParam: KParameter) : Abstrac
         memberFunctions.singleOrNull { it.name == CONVERT_FUNCTION_NAME }
             ?: throw NotImplementedError("JsonConvert argument class should have a convert function")
     }
-
-    private val jsonType: KType = getJsonPropertyType(converterClass)
 
     private val obj = converterClass.objectInstance
         ?: throw NotImplementedError("Class passed as argument to JsonConvert annotation should be an object class")
