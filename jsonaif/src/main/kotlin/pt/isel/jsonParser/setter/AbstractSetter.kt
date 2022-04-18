@@ -7,12 +7,15 @@ import java.lang.reflect.GenericSignatureFormatError
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
 
+// TODO: 18/04/2022 Comment
 abstract class AbstractSetter(private val kParam: KParameter) {
+
     private val typeKlass: KClass<*> = kParam.type.classifier as KClass<*>
 
     private val listObjectTypeKlass: KClass<*>? = calculateListObjectType()
     private val isNullable = kParam.type.isMarkedNullable
 
+    // TODO: 18/04/2022 Comment
     private fun calculateListObjectType(): KClass<*>? {
         val type = kParam.type
         val kParamKlass = type.classifier as KClass<*>
@@ -26,6 +29,7 @@ abstract class AbstractSetter(private val kParam: KParameter) {
         return null
     }
 
+    // TODO: 18/04/2022 Comment
     fun parse(tokens: JsonTokens): Any? {
         val propValue = if (listObjectTypeKlass != null)
             JsonParserReflect.parse(tokens, listObjectTypeKlass)
