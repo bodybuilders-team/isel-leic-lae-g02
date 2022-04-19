@@ -28,31 +28,44 @@ object JsonParserDynamic : AbstractJsonParser() {
     /**
      * Gets the [kParam] setter.
      *
+     * If [kParam] has a [JsonConvert] annotation, calls [getAnnotatedPropertySetter] otherwise calls [getPropertySetter].
+     *
      * @param klass representation of a class
      * @param kParam param to get setter
-     * @param hasNoArgsCtor true if the [klass]' primary constructor are all mutable properties with default values
      *
      * @return [kParam] setter
      */
-    override fun getSetter(klass: KClass<*>, kParam: KParameter, hasNoArgsCtor: Boolean): Setter {
-        val isAnnotated = kParam.hasAnnotation<JsonConvert>()
-
-        return when {
-            isAnnotated -> getAnnotatedPropertySetter(klass, kParam, hasNoArgsCtor)
-            else -> getPropertySetter(klass, kParam, hasNoArgsCtor)
+    override fun getSetter(klass: KClass<*>, kParam: KParameter, hasNoArgsCtor: Boolean) =
+        when {
+            kParam.hasAnnotation<JsonConvert>() -> getAnnotatedPropertySetter(klass, kParam)
+            else -> getPropertySetter(klass, kParam)
         }
-    }
 
     /**
-     * Gets the property setter without annotation.
+     * Gets the property setter without [JsonConvert] annotation.
+     *
+     * @param klass representation of a class
+     * @param kParam param to get setter
+     *
+     * @return [kParam] setter
      */
-    private fun getPropertySetter(klass: KClass<*>, kParam: KParameter, hasNoArgsCtor: Boolean): Setter {
+    private fun getPropertySetter(klass: KClass<*>, kParam: KParameter): Setter {
         val jsonPropertyKlass = kParam.type.classifier as KClass<*>
 
         return setter(klass, kParam, jsonPropertyKlass, "value")
     }
 
-    private fun getAnnotatedPropertySetter(klass: KClass<*>, kParam: KParameter, hasNoArgsCtor: Boolean): Setter {
+    /**
+     * Gets the property setter knowing it has a [JsonConvert] annotation.
+     * As such, in the setter, the value should be converted by calling the convert function
+     * of the converter class passed to [JsonConvert].
+     *
+     * @param klass representation of a class
+     * @param kParam param to get setter
+     *
+     * @return [kParam] setter
+     */
+    private fun getAnnotatedPropertySetter(klass: KClass<*>, kParam: KParameter): Setter {
         val annotation = kParam.findAnnotation<JsonConvert>()
             ?: throw ParseException("The parameter $kParam is not annotated with @JsonConvert")
 
@@ -64,7 +77,11 @@ object JsonParserDynamic : AbstractJsonParser() {
     }
 
     /**
-     * Gets the setter, based on the [jsonPropertyKlass] and the [valueDeclaration] expression.
+     * Gets the setter, by building a specific setter class for the property a .java file for it.
+     *
+     * The code of apply method of the setter consists of the following:
+     * - the parsing of the property into a variable
+     * - the call to the setter of the property
      *
      * @param klass representation of a class
      * @param kParam param to get setter
@@ -85,7 +102,7 @@ object JsonParserDynamic : AbstractJsonParser() {
 
         val applyCode = CodeBlock
             .builder()
-            .add(getApplyCodeVariableDeclaration(jsonPropertyKlass))
+            .add(getPropertyParsingCode(jsonPropertyKlass))
             .add(
                 "(($simpleKlassName)target).set${kParamName.capitalize()}($valueDeclaration);\n"
             )
@@ -112,9 +129,14 @@ object JsonParserDynamic : AbstractJsonParser() {
     }
 
     /**
-     * Gets the [kParam] getter.
+     * Gets the code to be used in [setter] regarding the parsing of the property into a variable.
+     *
+     * If the [jsonPropertyKlass] is a primitive type, the property is parsed using its primitive string parser.
+     * Otherwise, the property is parsed using [JsonParserDynamic] parse and then cast to the type.
+     *
+     * @param jsonPropertyKlass property type
      */
-    private fun getApplyCodeVariableDeclaration(jsonPropertyKlass: KClass<*>): String {
+    private fun getPropertyParsingCode(jsonPropertyKlass: KClass<*>): String {
         val kParamObjectTypeName = jsonPropertyKlass.javaObjectType.name
 
         return if (basicParser[jsonPropertyKlass] != null)

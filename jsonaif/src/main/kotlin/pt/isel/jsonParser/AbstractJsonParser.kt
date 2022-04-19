@@ -137,7 +137,7 @@ abstract class AbstractJsonParser : JsonParser {
      * @param klass represents a class
      * @return true if the [klass] is valid to parse
      */
-    protected fun isParseable(klass: KClass<*>): Boolean {
+    private fun isParseable(klass: KClass<*>): Boolean {
         if (klass in parseableKClasses)
             return true
 
@@ -159,7 +159,7 @@ abstract class AbstractJsonParser : JsonParser {
      * @return parsed object
      * @throws ParseException if something unexpected happens
      */
-    protected fun parseObjectWithInstance(tokens: JsonTokens, klass: KClass<*>): Any {
+    private fun parseObjectWithInstance(tokens: JsonTokens, klass: KClass<*>): Any {
         val instance = klass.createInstance()
 
         traverseJsonObject(tokens, klass, instance)
@@ -176,7 +176,7 @@ abstract class AbstractJsonParser : JsonParser {
      * @return parsed object
      * @throws ParseException if something unexpected happens
      */
-    protected fun parseObjectWithCtor(tokens: JsonTokens, klass: KClass<*>): Any {
+    private fun parseObjectWithCtor(tokens: JsonTokens, klass: KClass<*>): Any {
         val constructorParams = mutableMapOf<KParameter, Any?>()
 
         traverseJsonObject(tokens, klass, constructorParams)
@@ -213,7 +213,7 @@ abstract class AbstractJsonParser : JsonParser {
      *
      * @return map for accessing a parameter by its name
      */
-    protected fun loadSetters(klass: KClass<*>, hasNoArgsCtor: Boolean): Map<String?, Setter> =
+    private fun loadSetters(klass: KClass<*>, hasNoArgsCtor: Boolean): Map<String?, Setter> =
         klass.primaryConstructor?.parameters?.associate { kParam ->
             Pair(
                 getJsonPropertyName(kParam),

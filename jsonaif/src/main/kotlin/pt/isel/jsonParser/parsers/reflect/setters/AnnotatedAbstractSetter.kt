@@ -1,6 +1,7 @@
 package pt.isel.jsonParser.parsers.reflect.setters
 
 import pt.isel.jsonConvert.JsonConvert
+import pt.isel.jsonConvert.getJsonPropertyType
 import pt.isel.jsonParser.ParseException
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
@@ -8,7 +9,7 @@ import kotlin.reflect.KParameter
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.memberFunctions
 
-abstract class AnnotatedAbstractSetter(private val kParam: KParameter) : AbstractSetter(kParam) {
+abstract class AnnotatedAbstractSetter(kParam: KParameter) : AbstractSetter(kParam) {
     private val convertAnnotation = kParam.findAnnotation<JsonConvert>()
         ?: throw ParseException("Parameter ${kParam.name} doesn't have a JsonConvert annotation")
 
@@ -16,7 +17,7 @@ abstract class AnnotatedAbstractSetter(private val kParam: KParameter) : Abstrac
         private const val CONVERT_FUNCTION_NAME = "convert"
     }
 
-    private val converterClass: KClass<*> = convertAnnotation.converter
+    private val converterClass: KClass<*> = convertAnnotation.converter.also { getJsonPropertyType(it) }
 
     private val convertFunction: KFunction<*> = converterClass.run {
         memberFunctions.singleOrNull { it.name == CONVERT_FUNCTION_NAME }
