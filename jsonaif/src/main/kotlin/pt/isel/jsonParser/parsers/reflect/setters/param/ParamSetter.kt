@@ -6,7 +6,7 @@ import pt.isel.jsonParser.parsers.reflect.setters.Setter
 import kotlin.reflect.KParameter
 
 /**
- * Class for setting a parameter based on json tokens.
+ * Class for setting a parameter based on JSON tokens.
  *
  * @property kParam the parameter
  */

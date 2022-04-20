@@ -1,13 +1,13 @@
-package pt.isel.reflect
+package pt.isel.dynamic
 
-import pt.isel.jsonParser.parsers.reflect.JsonParserReflect
-import pt.isel.sample.generalTests.Person
-import pt.isel.sample.parseObjectWithArray.account.Account
-import pt.isel.sample.parseObjectWithArray.account.Transaction
-import pt.isel.sample.parseObjectWithArray.competition.Bike
-import pt.isel.sample.parseObjectWithArray.competition.BikeWithOwner
-import pt.isel.sample.parseObjectWithArray.competition.Competition
-import pt.isel.sample.parseWithJsonProperty.Employee
+import pt.isel.jsonParser.parsers.dynamic.JsonParserDynamic
+import pt.isel.sample.generalTests.Person2
+import pt.isel.sample.parseObjectWithArray.account.Account2
+import pt.isel.sample.parseObjectWithArray.account.Transaction2
+import pt.isel.sample.parseObjectWithArray.competition.Bike2
+import pt.isel.sample.parseObjectWithArray.competition.BikeWithOwner2
+import pt.isel.sample.parseObjectWithArray.competition.Competition2
+import pt.isel.sample.parseWithJsonProperty.Employee2
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -20,11 +20,11 @@ class JsonParserTest {
             " { fromId:\"andrejesus\", toId:\"nyckollasbrandao\", amount: 1000 }," +
             " { fromId:\"nyckollasbrandao\", toId:\"andrepascoa\", amount: 1000 }]}"
 
-        val account = JsonParserReflect.parse(json, Account::class) as Account
+        val account = JsonParserDynamic.parse(json, Account2::class) as Account2
         val mockTransactions = listOf(
-            Transaction("andrepascoa", "andrejesus", 1000.0),
-            Transaction("andrejesus", "nyckollasbrandao", 1000.0),
-            Transaction("nyckollasbrandao", "andrepascoa", 1000.0)
+            Transaction2("andrepascoa", "andrejesus", 1000.0),
+            Transaction2("andrejesus", "nyckollasbrandao", 1000.0),
+            Transaction2("nyckollasbrandao", "andrepascoa", 1000.0)
         )
 
         assertEquals("andrepascoa", account.id)
@@ -37,22 +37,21 @@ class JsonParserTest {
     @Test
     fun `parse object with an array (Competition) works`() {
         val bikesWithOwners = listOf(
-            BikeWithOwner(
-                Bike("0D-45-33", "Yamaha MT07"),
-                Person(0, "André Páscoa")
+            BikeWithOwner2(
+                Bike2("0D-45-33", "Yamaha MT07"),
+                Person2(0, "André Páscoa")
             ),
-
-            BikeWithOwner(
-                Bike("66-XX-33", "Yamaha R1"),
-                Person(1, "Nyckollas Brandão")
+            BikeWithOwner2(
+                Bike2("66-XX-33", "Yamaha R1"),
+                Person2(1, "Nyckollas Brandão")
             ),
-            BikeWithOwner(
-                Bike("33-DD-33", "Casal Boss 1989"),
-                Person(2, "André Jesus")
+            BikeWithOwner2(
+                Bike2("33-DD-33", "Casal Boss 1989"),
+                Person2(2, "André Jesus")
             )
         )
 
-        val mockCompetition = Competition("Cabo da roca GP", bikesWithOwners, 0)
+        val mockCompetition = Competition2("Cabo da roca GP", bikesWithOwners, 0)
 
         val json = "{ name: \"Cabo da roca GP\"," +
             " competitors: [" +
@@ -67,7 +66,7 @@ class JsonParserTest {
             "}" +
             "], winner: 0 }"
 
-        val competition = JsonParserReflect.parse(json, Competition::class) as Competition
+        val competition = JsonParserDynamic.parse(json, Competition2::class) as Competition2
         assertEquals(mockCompetition.name, competition.name)
 
         assertEquals(mockCompetition.competitors.size, competition.competitors.size)
@@ -84,7 +83,7 @@ class JsonParserTest {
     @Test
     fun `Parse object with other property name (Employee) works`() {
         val json = "{ name: \"Ze Manel\", birth_date: { year: 1999, month: 9, day: 19 }, salary: 9999 }"
-        val employee = JsonParserReflect.parse(json, Employee::class) as Employee
+        val employee = JsonParserDynamic.parse(json, Employee2::class) as Employee2
 
         assertEquals("Ze Manel", employee.name)
         assertEquals(19, employee.birth?.day)

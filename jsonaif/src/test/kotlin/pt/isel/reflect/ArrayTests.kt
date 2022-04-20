@@ -1,7 +1,7 @@
 package pt.isel.reflect
 
 import pt.isel.jsonParser.parsers.reflect.JsonParserReflect
-import pt.isel.sample.Person
+import pt.isel.sample.generalTests.Person
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

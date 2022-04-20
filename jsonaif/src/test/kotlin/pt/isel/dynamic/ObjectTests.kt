@@ -2,8 +2,8 @@ package pt.isel.dynamic
 
 import pt.isel.jsonParser.ParseException
 import pt.isel.jsonParser.parsers.dynamic.JsonParserDynamic
-import pt.isel.sample.MissingPrimaryConstructor
-import pt.isel.sample.Student
+import pt.isel.sample.generalTests.MissingPrimaryConstructor
+import pt.isel.sample.generalTests.student.Student
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith

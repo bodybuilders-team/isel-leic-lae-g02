@@ -13,11 +13,14 @@ import pt.isel.jsonParser.basicParser
 import pt.isel.jsonParser.capitalize
 import pt.isel.jsonParser.loadAndCreateInstance
 import pt.isel.jsonParser.parsers.reflect.setters.Setter
+import java.lang.reflect.GenericSignatureFormatError
 import javax.lang.model.element.Modifier
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
+import kotlin.reflect.KType
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.hasAnnotation
+import kotlin.reflect.jvm.javaType
 import kotlin.reflect.jvm.jvmName
 
 /**
@@ -49,11 +52,8 @@ object JsonParserDynamic : AbstractJsonParser() {
      *
      * @return [kParam] setter
      */
-    private fun getPropertySetter(klass: KClass<*>, kParam: KParameter): Setter {
-        val jsonPropertyKlass = kParam.type.classifier as KClass<*>
-
-        return setter(klass, kParam, jsonPropertyKlass, "value")
-    }
+    private fun getPropertySetter(klass: KClass<*>, kParam: KParameter): Setter =
+        setter(klass, kParam, kParam.type, valueDeclaration = "value")
 
     /**
      * Gets the property setter knowing it has a [JsonConvert] annotation.
@@ -69,11 +69,14 @@ object JsonParserDynamic : AbstractJsonParser() {
         val annotation = kParam.findAnnotation<JsonConvert>()
             ?: throw ParseException("The parameter $kParam is not annotated with @JsonConvert")
 
-        val jsonConverterClass = annotation.converter
+        val converterClass = annotation.converter
 
-        val jsonPropertyKlass = getJsonPropertyType(jsonConverterClass).classifier as KClass<*>
-
-        return setter(klass, kParam, jsonPropertyKlass, "${jsonConverterClass.qualifiedName}.INSTANCE.convert(value)")
+        return setter(
+            klass,
+            kParam,
+            getJsonPropertyType(converterClass),
+            valueDeclaration = "${converterClass.qualifiedName}.INSTANCE.convert(value)"
+        )
     }
 
     /**
@@ -85,7 +88,7 @@ object JsonParserDynamic : AbstractJsonParser() {
      *
      * @param klass representation of a class
      * @param kParam param to get setter
-     * @param jsonPropertyKlass property type
+     * @param jsonPropertyKType property type
      * @param valueDeclaration expression to be used in the setter
      *
      * @return [kParam] setter
@@ -93,19 +96,16 @@ object JsonParserDynamic : AbstractJsonParser() {
     private fun setter(
         klass: KClass<*>,
         kParam: KParameter,
-        jsonPropertyKlass: KClass<*>,
+        jsonPropertyKType: KType,
         valueDeclaration: String
     ): Setter {
-        val simpleKlassName = klass.qualifiedName ?: throw ParseException("Class name is null")
-
+        val klassName = klass.qualifiedName ?: throw ParseException("Class name is null")
         val kParamName = kParam.name ?: throw ParseException("Param name is null")
 
         val applyCode = CodeBlock
             .builder()
-            .add(getPropertyParsingCode(jsonPropertyKlass))
-            .add(
-                "(($simpleKlassName)target).set${kParamName.capitalize()}($valueDeclaration);\n"
-            )
+            .add(getPropertyParsingCode(jsonPropertyKType))
+            .add("(($klassName)target).set${kParamName.capitalize()}($valueDeclaration);\n")
             .build()
 
         val apply = MethodSpec.methodBuilder("apply")
@@ -116,7 +116,7 @@ object JsonParserDynamic : AbstractJsonParser() {
             .returns(Void.TYPE)
             .build()
 
-        val setter = TypeSpec.classBuilder("Setter${klass.simpleName}_${kParam.name}")
+        val setter = TypeSpec.classBuilder("Setter${klass.simpleName}_$kParamName")
             .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
             .addSuperinterface(Setter::class.java)
             .addMethod(apply)
@@ -131,21 +131,42 @@ object JsonParserDynamic : AbstractJsonParser() {
     /**
      * Gets the code to be used in [setter] regarding the parsing of the property into a variable.
      *
-     * If the [jsonPropertyKlass] is a primitive type, the property is parsed using its primitive string parser.
+     * If the [propertyKType] is a primitive type, the property is parsed using its primitive string parser.
      * Otherwise, the property is parsed using [JsonParserDynamic] parse and then cast to the type.
      *
-     * @param jsonPropertyKlass property type
+     * @param propertyKType property type
      */
-    private fun getPropertyParsingCode(jsonPropertyKlass: KClass<*>): String {
-        val kParamObjectTypeName = jsonPropertyKlass.javaObjectType.name
+    private fun getPropertyParsingCode(propertyKType: KType): String {
+        val propertyKlass = propertyKType.classifier as KClass<*>
+        val listObjectTypeKlass: KClass<*>? = getListObjectType(propertyKType, propertyKlass)
 
-        return if (basicParser[jsonPropertyKlass] != null)
-            "${jsonPropertyKlass.jvmName} value = ${jsonPropertyKlass.javaObjectType.simpleName}" +
-                ".parse${jsonPropertyKlass.simpleName}(tokens.popWordPrimitive().trim());\n"
+        val kParamObjectTypeName = if (listObjectTypeKlass == null)
+            propertyKlass.javaObjectType.name
+        else
+            propertyKType.javaType.typeName
+
+        return if (basicParser[propertyKlass] != null)
+            "${propertyKlass.jvmName} value = ${propertyKlass.javaObjectType.simpleName}" +
+                ".parse${propertyKlass.simpleName}(tokens.popWordPrimitive().trim());\n"
         else
             "$kParamObjectTypeName value = ($kParamObjectTypeName) ${JsonParserDynamic::class.qualifiedName}" +
-                ".INSTANCE.parse(tokens, kotlin.jvm.JvmClassMappingKt.getKotlinClass($kParamObjectTypeName.class));\n"
+                ".INSTANCE.parse(tokens, kotlin.jvm.JvmClassMappingKt.getKotlinClass(" +
+                "${listObjectTypeKlass?.javaObjectType?.name ?: propertyKlass.javaObjectType.name}.class));\n"
     }
-}
 
-// TODO: 18/04/2022 JsonProperty annotation
+    /**
+     * Gets the type of the list object.
+     *
+     * @param propertyKType JSON property KType
+     * @param propertyKlass JSON property KClass
+     *
+     * @return representation of the list object type
+     */
+    private fun getListObjectType(propertyKType: KType, propertyKlass: KClass<*>): KClass<*>? =
+        if (propertyKlass == List::class) {
+            val type = propertyKType.arguments.first().type
+                ?: throw GenericSignatureFormatError("List generics cannot have star projection types")
+
+            type.classifier as KClass<*>
+        } else null
+}

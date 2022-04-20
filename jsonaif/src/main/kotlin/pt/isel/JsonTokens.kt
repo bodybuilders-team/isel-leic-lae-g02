@@ -43,6 +43,7 @@ class JsonTokens(json: String) {
      * Pops a char from [src] and advances.
      * @return popped char
      */
+    @Suppress("unused")
     fun pop(): Char {
         val token = src[index]
         index++

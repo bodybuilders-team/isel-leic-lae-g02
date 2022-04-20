@@ -9,6 +9,11 @@ import kotlin.reflect.KParameter
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.memberFunctions
 
+/**
+ * Class for setting a parameter based on json tokens, using a JsonConvert annotation.
+ *
+ * @property kParam the parameter
+ */
 abstract class AnnotatedAbstractSetter(kParam: KParameter) : AbstractSetter(kParam) {
     private val convertAnnotation = kParam.findAnnotation<JsonConvert>()
         ?: throw ParseException("Parameter ${kParam.name} doesn't have a JsonConvert annotation")

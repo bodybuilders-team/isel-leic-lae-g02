@@ -2,11 +2,11 @@ package pt.isel.reflect
 
 import pt.isel.jsonParser.ParseException
 import pt.isel.jsonParser.parsers.reflect.JsonParserReflect
-import pt.isel.sample.Classroom
-import pt.isel.sample.MissingPrimaryConstructor
-import pt.isel.sample.Person
-import pt.isel.sample.Student
-import pt.isel.sample.Student2
+import pt.isel.sample.generalTests.MissingPrimaryConstructor
+import pt.isel.sample.generalTests.Person
+import pt.isel.sample.generalTests.student.Student
+import pt.isel.sample.generalTests.student.Student2
+import pt.isel.sample.parseWithNoOptionalParams.Classroom
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
