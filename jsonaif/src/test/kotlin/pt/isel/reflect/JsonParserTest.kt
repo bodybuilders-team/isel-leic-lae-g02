@@ -1,7 +1,9 @@
 package pt.isel.reflect
 
+import pt.isel.jsonParser.ParseException
 import pt.isel.jsonParser.parsers.reflect.JsonParserReflect
 import pt.isel.sample.generalTests.Person
+import pt.isel.sample.notParseable.Car
 import pt.isel.sample.parseObjectWithArray.account.Account
 import pt.isel.sample.parseObjectWithArray.account.Transaction
 import pt.isel.sample.parseObjectWithArray.competition.Bike
@@ -10,6 +12,7 @@ import pt.isel.sample.parseObjectWithArray.competition.Competition
 import pt.isel.sample.parseWithJsonProperty.Employee
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 class JsonParserTest {
 
@@ -93,5 +96,12 @@ class JsonParserTest {
         assertEquals(9999, employee.salary)
     }
 
-    // TODO: 01/04/2022 Test not parseable
+    @Test
+    fun `Parse object with param that is not a property throws ParseException`() {
+        val json = "{ license_plate: \"11-MB-11\", price: 10000 }"
+
+        assertFailsWith<ParseException> {
+            JsonParserReflect.parse(json, Car::class) as Car
+        }
+    }
 }

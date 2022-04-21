@@ -10,7 +10,7 @@ import kotlin.test.assertEquals
 class JsonParserObjects {
 
     @Test
-    fun parsePerson() {
+    fun `Parse Person with JsonParserReflect`() {
         val json = "{ name: \"Ze Manel\", birth: { year: 1999, month: 9, day: 19}}"
         val student = parsePerson(json, JsonParserReflect)
         assertEquals("Ze Manel", student.name)
@@ -20,7 +20,7 @@ class JsonParserObjects {
     }
 
     @Test
-    fun parseDate() {
+    fun `Parse Date with JsonParserReflect`() {
         val json = "{ year: 1999, month: 9, day: 19}"
         val dt = parseDate(json, JsonParserReflect)
         assertEquals(19, dt.day)

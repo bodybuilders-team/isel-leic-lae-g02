@@ -145,7 +145,7 @@ abstract class AbstractJsonParser : JsonParser {
 
         return klass.primaryConstructor?.parameters
             ?.all { kParam -> kParam.name in properties }
-            .also { parseableKClasses.add(klass) }
+            .also { if (it == true) parseableKClasses.add(klass) }
             ?: false
     }
 
