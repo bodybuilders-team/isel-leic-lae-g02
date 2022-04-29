@@ -1,5 +1,6 @@
 package pt.isel.dynamic
 
+import pt.isel.jsonParser.ParseException
 import pt.isel.jsonParser.parsers.dynamic.JsonParserDynamic
 import pt.isel.sample.generalTests.Date
 import pt.isel.sample.parseWithJsonConvert.cake.Cake
@@ -22,10 +23,10 @@ class JsonConvertTests {
     }
 
     @Test
-    fun `Parse object with non optional property throws ClassNotFoundException`() {
+    fun `Parse object with non optional property throws ParseException`() {
         val json = "{ expDate: \"1998-11-17\" }"
 
-        assertFailsWith<ClassNotFoundException> {
+        assertFailsWith<ParseException> {
             JsonParserDynamic.parse(json, Cake2::class) as Cake2
         }
     }
@@ -34,7 +35,7 @@ class JsonConvertTests {
     fun `Parse object with property annotated with JsonConvert but the converter class is missing convert function`() {
         val json = "{ expDate: \"1998-11-17\" }"
 
-        assertFailsWith<NotImplementedError> {
+        assertFailsWith<ParseException> {
             JsonParserDynamic.parse(json, Cake6::class) as Cake6
         }
     }
@@ -43,7 +44,7 @@ class JsonConvertTests {
     fun `Parse object with property annotated with JsonConvert but the converter class doesn't implement JsonConverter interface`() {
         val json = "{ expDate: \"1998-11-17\" }"
 
-        assertFailsWith<NotImplementedError> {
+        assertFailsWith<ParseException> {
             JsonParserDynamic.parse(json, Cake7::class) as Cake7
         }
     }
@@ -52,7 +53,7 @@ class JsonConvertTests {
     fun `Parse object with property annotated with JsonConvert but the converter class isn't an object`() {
         val json = "{ expDate: \"1998-11-17\" }"
 
-        assertFailsWith<ClassNotFoundException> {
+        assertFailsWith<ParseException> {
             JsonParserDynamic.parse(json, Cake8::class) as Cake8
         }
     }

@@ -1,5 +1,6 @@
 package pt.isel.reflect
 
+import pt.isel.jsonParser.ParseException
 import pt.isel.jsonParser.parsers.reflect.JsonParserReflect
 import pt.isel.sample.generalTests.Date
 import pt.isel.sample.parseWithJsonConvert.cake.Cake
@@ -34,7 +35,7 @@ class JsonConvertTests {
     fun `Parse object with property annotated with JsonConvert but the converter class is missing convert function`() {
         val json = "{ expDate: \"1998-11-17\" }"
 
-        assertFailsWith<NotImplementedError> {
+        assertFailsWith<ParseException> {
             JsonParserReflect.parse(json, Cake3::class) as Cake3
         }
     }
@@ -43,7 +44,7 @@ class JsonConvertTests {
     fun `Parse object with property annotated with JsonConvert but the converter class doesn't implement JsonConverter interface`() {
         val json = "{ expDate: \"1998-11-17\" }"
 
-        assertFailsWith<NotImplementedError> {
+        assertFailsWith<ParseException> {
             JsonParserReflect.parse(json, Cake4::class) as Cake4
         }
     }
@@ -52,7 +53,7 @@ class JsonConvertTests {
     fun `Parse object with property annotated with JsonConvert but the converter class isn't an object`() {
         val json = "{ expDate: \"1998-11-17\" }"
 
-        assertFailsWith<NotImplementedError> {
+        assertFailsWith<ParseException> {
             JsonParserReflect.parse(json, Cake5::class) as Cake5
         }
     }

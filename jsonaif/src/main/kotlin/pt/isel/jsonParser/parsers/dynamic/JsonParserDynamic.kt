@@ -6,12 +6,12 @@ import com.squareup.javapoet.MethodSpec
 import com.squareup.javapoet.TypeSpec
 import pt.isel.JsonTokens
 import pt.isel.jsonConvert.JsonConvert
-import pt.isel.jsonConvert.getJsonPropertyType
 import pt.isel.jsonParser.AbstractJsonParser
 import pt.isel.jsonParser.ParseException
 import pt.isel.jsonParser.basicParser
 import pt.isel.jsonParser.capitalize
 import pt.isel.jsonParser.loadAndCreateInstance
+import pt.isel.jsonConvert.JsonConvertData
 import pt.isel.jsonParser.parsers.reflect.setters.Setter
 import java.lang.reflect.GenericSignatureFormatError
 import javax.lang.model.element.Modifier
@@ -40,6 +40,10 @@ object JsonParserDynamic : AbstractJsonParser() {
      */
     override fun getSetter(klass: KClass<*>, kParam: KParameter, hasNoArgsCtor: Boolean) =
         when {
+            !hasNoArgsCtor ->
+                throw ParseException(
+                    "Dynamic parser only parses objects that primary constructor are all mutable properties with default values"
+                )
             kParam.hasAnnotation<JsonConvert>() -> getAnnotatedPropertySetter(klass, kParam)
             else -> getPropertySetter(klass, kParam)
         }
@@ -69,12 +73,13 @@ object JsonParserDynamic : AbstractJsonParser() {
         val annotation = kParam.findAnnotation<JsonConvert>()
             ?: throw ParseException("The parameter $kParam is not annotated with @JsonConvert")
 
-        val converterClass = annotation.converter
+        val jsonConvertData = JsonConvertData(annotation)
+        val converterClass = jsonConvertData.converterClass
 
         return setter(
             klass,
             kParam,
-            getJsonPropertyType(converterClass),
+            jsonConvertData.propType,
             valueDeclaration = "${converterClass.qualifiedName}.INSTANCE.convert(value)"
         )
     }
@@ -147,11 +152,11 @@ object JsonParserDynamic : AbstractJsonParser() {
 
         return if (basicParser[propertyKlass] != null)
             "${propertyKlass.jvmName} value = ${propertyKlass.javaObjectType.simpleName}" +
-                ".parse${propertyKlass.simpleName}(tokens.popWordPrimitive().trim());\n"
+                    ".parse${propertyKlass.simpleName}(tokens.popWordPrimitive().trim());\n"
         else
             "$kParamObjectTypeName value = ($kParamObjectTypeName) ${JsonParserDynamic::class.qualifiedName}" +
-                ".INSTANCE.parse(tokens, kotlin.jvm.JvmClassMappingKt.getKotlinClass(" +
-                "${listObjectTypeKlass?.javaObjectType?.name ?: propertyKlass.javaObjectType.name}.class));\n"
+                    ".INSTANCE.parse(tokens, kotlin.jvm.JvmClassMappingKt.getKotlinClass(" +
+                    "${listObjectTypeKlass?.javaObjectType?.name ?: propertyKlass.javaObjectType.name}.class));\n"
     }
 
     /**
