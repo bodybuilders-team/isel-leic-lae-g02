@@ -56,7 +56,7 @@ abstract class AbstractJsonParser : JsonParser {
         val unparsedValue = tokens.popWordPrimitive().trim()
         if (unparsedValue == NULL_STRING) return null
 
-        val parseException = ParseException.unexpectedClass(unparsedValue, klass.qualifiedName)
+        val parseException = ParseException("Value $unparsedValue is not of expected class ${klass.qualifiedName}")
         val parser = basicParser[klass] ?: throw parseException
 
         try {
@@ -74,7 +74,7 @@ abstract class AbstractJsonParser : JsonParser {
      * @param klass represents a class
      * @return [klass] instance with [tokens] data
      */
-    private fun parseObject(tokens: JsonTokens, klass: KClass<*>): Any? {
+    private fun parseObject(tokens: JsonTokens, klass: KClass<*>): Any {
         tokens.pop(OBJECT_OPEN)
         tokens.trim() // Added to allow for empty object
 

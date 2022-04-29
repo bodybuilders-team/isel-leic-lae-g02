@@ -60,5 +60,8 @@ fun loadAndCreateInstance(source: JavaFile): Any {
         .newInstance()
 }
 
+/**
+ * Returns a copy of this string having it's first letter uppercased.
+ */
 fun String.capitalize() =
     replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
