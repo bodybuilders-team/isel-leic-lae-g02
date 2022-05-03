@@ -6,12 +6,12 @@ import com.squareup.javapoet.MethodSpec
 import com.squareup.javapoet.TypeSpec
 import pt.isel.JsonTokens
 import pt.isel.jsonConvert.JsonConvert
+import pt.isel.jsonConvert.JsonConvertData
 import pt.isel.jsonParser.AbstractJsonParser
 import pt.isel.jsonParser.ParseException
 import pt.isel.jsonParser.basicParser
 import pt.isel.jsonParser.capitalize
 import pt.isel.jsonParser.loadAndCreateInstance
-import pt.isel.jsonConvert.JsonConvertData
 import pt.isel.jsonParser.parsers.reflect.setters.Setter
 import java.lang.reflect.GenericSignatureFormatError
 import javax.lang.model.element.Modifier
@@ -35,8 +35,10 @@ object JsonParserDynamic : AbstractJsonParser() {
      *
      * @param klass representation of a class
      * @param kParam param to get setter
+     * @param hasNoArgsCtor true if the [klass]' primary constructor are all mutable properties with default values
      *
      * @return [kParam] setter
+     * @throws ParseException if [hasNoArgsCtor] is false
      */
     override fun getSetter(klass: KClass<*>, kParam: KParameter, hasNoArgsCtor: Boolean) =
         when {
@@ -152,11 +154,11 @@ object JsonParserDynamic : AbstractJsonParser() {
 
         return if (basicParser[propertyKlass] != null)
             "${propertyKlass.jvmName} value = ${propertyKlass.javaObjectType.simpleName}" +
-                    ".parse${propertyKlass.simpleName}(tokens.popWordPrimitive().trim());\n"
+                ".parse${propertyKlass.simpleName}(tokens.popWordPrimitive().trim());\n"
         else
             "$kParamObjectTypeName value = ($kParamObjectTypeName) ${JsonParserDynamic::class.qualifiedName}" +
-                    ".INSTANCE.parse(tokens, kotlin.jvm.JvmClassMappingKt.getKotlinClass(" +
-                    "${listObjectTypeKlass?.javaObjectType?.name ?: propertyKlass.javaObjectType.name}.class));\n"
+                ".INSTANCE.parse(tokens, kotlin.jvm.JvmClassMappingKt.getKotlinClass(" +
+                "${listObjectTypeKlass?.javaObjectType?.name ?: propertyKlass.javaObjectType.name}.class));\n"
     }
 
     /**

@@ -221,5 +221,14 @@ abstract class AbstractJsonParser : JsonParser {
             )
         } ?: throw ParseException("Klass ${klass.primaryConstructor} not have a primary constructor")
 
+    /**
+     * Gets the [kParam] setter.
+     *
+     * @param klass representation of a class
+     * @param kParam param to get setter
+     * @param hasNoArgsCtor true if the [klass]' primary constructor are all mutable properties with default values
+     *
+     * @return [kParam] setter
+     */
     abstract fun getSetter(klass: KClass<*>, kParam: KParameter, hasNoArgsCtor: Boolean): Setter
 }
