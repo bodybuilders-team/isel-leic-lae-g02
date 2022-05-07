@@ -1,11 +1,12 @@
 package pt.isel
 
-import pt.isel.jsonParser.JsonParser
+import pt.isel.jsonParser.parsers.dynamic.JsonParserDynamic
+import pt.isel.jsonParser.parsers.reflect.JsonParserReflect
 
-fun parsePerson(json: String, parser: JsonParser): Person {
-    return parser.parse(json, Person::class) as Person
+fun jsonReflectParse(json: String, javaClass: Class<*>): Any? {
+    return JsonParserReflect.parse(json, javaClass.kotlin)
 }
 
-fun parseDate(json: String, parser: JsonParser): Date {
-    return parser.parse(json, Date::class) as Date
+fun jsonDynamicParse(json: String, javaClass: Class<*>): Any? {
+    return JsonParserDynamic.parse(json, javaClass.kotlin)
 }

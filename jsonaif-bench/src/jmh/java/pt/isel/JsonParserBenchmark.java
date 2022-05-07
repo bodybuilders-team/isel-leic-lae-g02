@@ -1,42 +1,46 @@
 package pt.isel;
 
 import java.util.concurrent.TimeUnit;
-
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.annotations.OutputTimeUnit;
-import pt.isel.jsonParser.parsers.dynamic.JsonParserDynamic;
-import pt.isel.jsonParser.parsers.reflect.JsonParserReflect;
-
-import static pt.isel.JsonParserObjectsKt.parseDate;
-import static pt.isel.JsonParserObjectsKt.parsePerson;
 
 
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
 public class JsonParserBenchmark {
-
-    static final String personJson = "{ name: \"Ze Manel\", birth: { year: 1999, month: 9, day: 19}}";
-    static final String dateJson = "{ name: \"Ze Manel\", birth: { year: 1999, month: 9, day: 19}}";
+    static final String classroomJson = "{students:[{ name: \"John\" }, { name: \"Mary\"}]}";
+    static final String dateJson = "{ year: 1999, month: 9, day: 19}";
+    static final String date2Json = "{ year: \"1999\", month: \"9\", day: \"19\"}";
 
     @Benchmark
-    public void parsePersonViaReflection() {
-        parsePerson(personJson, JsonParserReflect.INSTANCE);
+    public void parseClassroomViaReflection() {
+        JsonParserObjectsKt.jsonReflectParse(classroomJson, Classroom.class);
     }
 
     @Benchmark
-    public void parsePersonViaDynamic() {
-        parsePerson(personJson, JsonParserDynamic.INSTANCE);
+    public void parseClassroomViaDynamic() {
+        JsonParserObjectsKt.jsonDynamicParse(classroomJson, Classroom.class);
     }
 
     @Benchmark
     public void parseDateViaReflection() {
-        parseDate(dateJson, JsonParserReflect.INSTANCE);
+        JsonParserObjectsKt.jsonReflectParse(date2Json, Date2.class);
+    }
+
+    @Benchmark
+    public void parsePrimitiveDateViaReflection() {
+        JsonParserObjectsKt.jsonReflectParse(dateJson, Date.class);
     }
 
     @Benchmark
     public void parseDateViaDynamic() {
-        parseDate(dateJson, JsonParserDynamic.INSTANCE);
+        JsonParserObjectsKt.jsonDynamicParse(date2Json, Date2.class);
+    }
+
+    @Benchmark
+    public void parsePrimitiveDateViaDynamic() {
+        JsonParserObjectsKt.jsonDynamicParse(dateJson, Date.class);
     }
 }

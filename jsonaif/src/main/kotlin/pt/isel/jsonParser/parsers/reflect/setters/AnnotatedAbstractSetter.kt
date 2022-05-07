@@ -1,8 +1,8 @@
 package pt.isel.jsonParser.parsers.reflect.setters
 
 import pt.isel.jsonConvert.JsonConvert
-import pt.isel.jsonParser.ParseException
 import pt.isel.jsonConvert.JsonConvertData
+import pt.isel.jsonParser.ParseException
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
 import kotlin.reflect.full.findAnnotation

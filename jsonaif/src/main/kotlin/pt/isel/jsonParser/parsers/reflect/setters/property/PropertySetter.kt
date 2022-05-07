@@ -2,9 +2,10 @@ package pt.isel.jsonParser.parsers.reflect.setters.property
 
 import pt.isel.JsonTokens
 import pt.isel.jsonParser.parsers.reflect.setters.AbstractSetter
+import pt.isel.jsonParser.parsers.reflect.setters.IPropertySetter
+import pt.isel.jsonParser.parsers.reflect.setters.IPropertySetterImpl
 import pt.isel.jsonParser.parsers.reflect.setters.Setter
 import kotlin.reflect.KClass
-import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KParameter
 
 /**
@@ -14,12 +15,14 @@ import kotlin.reflect.KParameter
  * @property kParam the parameter associated to the property
  * @property kProp the property to be set
  */
-class PropertySetter(klass: KClass<*>, private val kParam: KParameter) : AbstractSetter(kParam), Setter {
-    private val kProp = getKProp(klass, kParam)
+class PropertySetter(klass: KClass<*>, private val kParam: KParameter) :
+    AbstractSetter(kParam),
+    IPropertySetter by IPropertySetterImpl(klass, kParam),
+    Setter {
 
     override fun apply(target: Any, tokens: JsonTokens) {
         val propValue = parse(tokens)
 
-        (kProp as KMutableProperty<*>).setter.call(target, propValue)
+        setterFunction.call(target, propValue)
     }
 }

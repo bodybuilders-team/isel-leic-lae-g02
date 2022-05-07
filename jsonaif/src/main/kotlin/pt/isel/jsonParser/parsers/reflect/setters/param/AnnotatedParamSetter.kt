@@ -17,7 +17,6 @@ class AnnotatedParamSetter(private val kParam: KParameter) : AnnotatedAbstractSe
         val propValue = convert(parse(tokens))
 
         @Suppress("UNCHECKED_CAST")
-        val paramMap: MutableMap<KParameter, Any?> = target as MutableMap<KParameter, Any?>
-        paramMap[kParam] = propValue
+        (target as MutableMap<KParameter, Any?>)[kParam] = propValue
     }
 }

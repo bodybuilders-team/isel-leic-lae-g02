@@ -16,7 +16,6 @@ class ParamSetter(private val kParam: KParameter) : AbstractSetter(kParam), Sett
         val propValue = parse(tokens)
 
         @Suppress("UNCHECKED_CAST")
-        val paramMap: MutableMap<KParameter, Any?> = target as MutableMap<KParameter, Any?>
-        paramMap[kParam] = propValue
+        (target as MutableMap<KParameter, Any?>)[kParam] = propValue
     }
 }
