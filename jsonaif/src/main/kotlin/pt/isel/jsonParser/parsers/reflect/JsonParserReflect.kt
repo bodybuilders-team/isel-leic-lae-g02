@@ -1,12 +1,9 @@
 package pt.isel.jsonParser.parsers.reflect
 
 import pt.isel.JsonTokens
-import pt.isel.OBJECT_END
-import pt.isel.OBJECT_OPEN
 import pt.isel.jsonConvert.JsonConvert
 import pt.isel.jsonParser.AbstractJsonParser
 import pt.isel.jsonParser.ParseException
-import pt.isel.jsonParser.hasOptionalPrimaryConstructor
 import pt.isel.jsonParser.parsers.reflect.JsonParserReflect.setters
 import pt.isel.jsonParser.parsers.reflect.setters.Setter
 import pt.isel.jsonParser.parsers.reflect.setters.param.AnnotatedParamSetter
@@ -25,28 +22,11 @@ import kotlin.reflect.full.primaryConstructor
  */
 object JsonParserReflect : AbstractJsonParser() {
 
-    override fun parseObject(tokens: JsonTokens, klass: KClass<*>): Any {
-        tokens.pop(OBJECT_OPEN)
-        tokens.trim() // Added to allow for empty object
-
-        if (!isParseable(klass))
-            throw ParseException(
-                "Class ${klass.qualifiedName} is not valid to parse: " +
-                    "all parameters of the primary constructor must be properties"
-            )
-
-        val hasNoArgsCtor = klass.hasOptionalPrimaryConstructor()
-        setters.computeIfAbsent(klass) { loadSetters(klass, hasNoArgsCtor) }
-
-        val parsedObject =
-            if (hasNoArgsCtor)
-                parseObjectWithInstance(tokens, klass)
-            else
-                parseObjectWithCtor(tokens, klass)
-
-        tokens.pop(OBJECT_END)
-        return parsedObject
-    }
+    override fun getInstance(tokens: JsonTokens, klass: KClass<*>, hasNoArgsCtor: Boolean): Any =
+        if (hasNoArgsCtor)
+            parseObjectWithInstance(tokens, klass)
+        else
+            parseObjectWithCtor(tokens, klass)
 
     /**
      * Parses an object using an instance returned by KClass.createInstance() method,

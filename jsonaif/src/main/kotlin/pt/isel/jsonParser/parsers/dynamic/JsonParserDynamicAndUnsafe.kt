@@ -1,4 +1,4 @@
-package pt.isel.jsonParser.parsers.dynamicAndUnsafe
+package pt.isel.jsonParser.parsers.dynamic
 
 import com.squareup.javapoet.ClassName
 import com.squareup.javapoet.CodeBlock
@@ -6,19 +6,14 @@ import com.squareup.javapoet.JavaFile
 import com.squareup.javapoet.MethodSpec
 import com.squareup.javapoet.TypeSpec
 import pt.isel.JsonTokens
-import pt.isel.OBJECT_END
-import pt.isel.OBJECT_OPEN
 import pt.isel.UnsafeUtils.unsafe
 import pt.isel.jsonConvert.JsonConvert
 import pt.isel.jsonConvert.JsonConvertData
-import pt.isel.jsonParser.AbstractJsonParser
 import pt.isel.jsonParser.ParseException
 import pt.isel.jsonParser.basicParser
 import pt.isel.jsonParser.capitalize
-import pt.isel.jsonParser.hasOptionalPrimaryConstructor
 import pt.isel.jsonParser.loadAndCreateInstance
 import pt.isel.jsonParser.parsers.reflect.setters.Setter
-import java.lang.reflect.GenericSignatureFormatError
 import javax.lang.model.element.Modifier
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
@@ -33,26 +28,21 @@ import kotlin.reflect.jvm.jvmName
  */
 // TODO: 10/05/2022 Add default value usage (since constructor is not called, default values are ignored)
 // TODO: 10/05/2022 Check nullable types.
-object JsonParserDynamicAndUnsafe : AbstractJsonParser() {
-    override fun parseObject(tokens: JsonTokens, klass: KClass<*>): Any {
-        tokens.pop(OBJECT_OPEN)
-        tokens.trim() // Added to allow for empty object
+object JsonParserDynamicAndUnsafe : AbstractJsonParserDynamic() {
 
-        if (!isParseable(klass))
-            throw ParseException(
-                "Class ${klass.qualifiedName} is not valid to parse: " +
-                    "all parameters of the primary constructor must be properties"
-            )
-
-        val hasNoArgsCtor = klass.hasOptionalPrimaryConstructor()
-
-        setters.computeIfAbsent(klass) { loadSetters(klass, hasNoArgsCtor) }
-
+    /**
+     * Gets the [klass] instance with [tokens] data.
+     * @param tokens JSON tokens
+     * @param klass represents a class
+     * @param hasNoArgsCtor true if the [klass]' primary constructor are all mutable properties with default values
+     *
+     * @return [klass] instance with [tokens] data
+     */
+    override fun getInstance(tokens: JsonTokens, klass: KClass<*>, hasNoArgsCtor: Boolean): Any {
         val instance = unsafe.allocateInstance(klass.java)
 
         traverseJsonObject(tokens, klass, instance)
 
-        tokens.pop(OBJECT_END)
         return instance
     }
 
@@ -83,7 +73,7 @@ object JsonParserDynamicAndUnsafe : AbstractJsonParser() {
      * @return [kParam] setter
      */
     private fun getPropertySetter(klass: KClass<*>, kParam: KParameter): Setter =
-        setter(klass, kParam, kParam.type, valueDeclaration = "value", false)
+        setter(klass, kParam, kParam.type, valueDeclaration = "value", castToType = false)
 
     /**
      * Gets the property setter knowing it has a [JsonConvert] annotation.
@@ -176,6 +166,7 @@ object JsonParserDynamicAndUnsafe : AbstractJsonParser() {
         return loadAndCreateInstance(javaFile) as Setter
     }
 
+    // TODO: 10/05/2022 Comment
     private fun getUnsafeSetterTypeString(propertyKType: KType): String {
         val propertyKlass = propertyKType.classifier as KClass<*>
 
@@ -212,27 +203,4 @@ object JsonParserDynamicAndUnsafe : AbstractJsonParser() {
                 ".INSTANCE.parse(tokens, kotlin.jvm.JvmClassMappingKt.getKotlinClass(" +
                 "${listObjectTypeKlass?.javaObjectType?.name ?: propertyKlass.javaObjectType.name}.class));\n"
     }
-
-    /**
-     * Gets the type of the list object.
-     *
-     * @param propertyKType JSON property KType
-     * @param propertyKlass JSON property KClass
-     *
-     * @return representation of the list object type
-     */
-    private fun getListObjectType(propertyKType: KType, propertyKlass: KClass<*>): KClass<*>? =
-        if (propertyKlass == List::class) {
-            val type = propertyKType.arguments.first().type
-                ?: throw GenericSignatureFormatError("List generics cannot have star projection types")
-
-            type.classifier as KClass<*>
-        } else null
 }
-
-data class Date(
-    val day: Int,
-    val month: Int,
-    val monthStr: String,
-    val year: Int = 2000,
-)

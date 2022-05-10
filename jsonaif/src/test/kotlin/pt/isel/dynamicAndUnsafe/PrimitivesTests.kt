@@ -1,7 +1,7 @@
 package pt.isel.unsafeDynamic
 
 import pt.isel.jsonParser.ParseException
-import pt.isel.jsonParser.parsers.dynamicAndUnsafe.JsonParserDynamicAndUnsafe
+import pt.isel.jsonParser.parsers.dynamic.JsonParserDynamicAndUnsafe
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith

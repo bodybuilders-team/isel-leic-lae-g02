@@ -73,7 +73,34 @@ abstract class AbstractJsonParser : JsonParser {
      * @param klass represents a class
      * @return [klass] instance with [tokens] data
      */
-    protected abstract fun parseObject(tokens: JsonTokens, klass: KClass<*>): Any
+    private fun parseObject(tokens: JsonTokens, klass: KClass<*>): Any {
+        tokens.pop(OBJECT_OPEN)
+        tokens.trim() // Added to allow for empty object
+
+        if (!isParseable(klass))
+            throw ParseException(
+                "Class ${klass.qualifiedName} is not valid to parse: " +
+                    "all parameters of the primary constructor must be properties"
+            )
+
+        val hasNoArgsCtor = klass.hasOptionalPrimaryConstructor()
+        setters.computeIfAbsent(klass) { loadSetters(klass, hasNoArgsCtor) }
+
+        val instance = getInstance(tokens, klass, hasNoArgsCtor)
+
+        tokens.pop(OBJECT_END)
+        return instance
+    }
+
+    /**
+     * Gets the [klass] instance with [tokens] data.
+     * @param tokens JSON tokens
+     * @param klass represents a class
+     * @param hasNoArgsCtor true if the [klass]' primary constructor are all mutable properties with default values
+     *
+     * @return [klass] instance with [tokens] data
+     */
+    protected abstract fun getInstance(tokens: JsonTokens, klass: KClass<*>, hasNoArgsCtor: Boolean): Any
 
     /**
      * Parses the JSON string tokens.
@@ -115,7 +142,7 @@ abstract class AbstractJsonParser : JsonParser {
      * @param klass represents a class
      * @return true if the [klass] is valid to parse
      */
-    protected fun isParseable(klass: KClass<*>): Boolean {
+    private fun isParseable(klass: KClass<*>): Boolean {
         if (klass in parseableKClasses)
             return true
 
@@ -155,7 +182,7 @@ abstract class AbstractJsonParser : JsonParser {
      *
      * @return map for accessing a parameter by its name
      */
-    protected fun loadSetters(klass: KClass<*>, hasNoArgsCtor: Boolean): Map<String?, Setter> =
+    private fun loadSetters(klass: KClass<*>, hasNoArgsCtor: Boolean): Map<String?, Setter> =
         klass.primaryConstructor?.parameters?.associate { kParam ->
             Pair(
                 getJsonPropertyName(kParam),

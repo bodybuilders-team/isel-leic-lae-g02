@@ -1,7 +1,7 @@
 package pt.isel.dynamicAndUnsafe
 
 import pt.isel.jsonParser.ParseException
-import pt.isel.jsonParser.parsers.dynamicAndUnsafe.JsonParserDynamicAndUnsafe
+import pt.isel.jsonParser.parsers.dynamic.JsonParserDynamicAndUnsafe
 import pt.isel.sample.generalTests.Date
 import pt.isel.sample.parseWithJsonConvert.cake.Cake
 import pt.isel.sample.parseWithJsonConvert.cake.Cake3

@@ -1,6 +1,6 @@
 package pt.isel.dynamicAndUnsafe
 
-import pt.isel.jsonParser.parsers.dynamicAndUnsafe.JsonParserDynamicAndUnsafe
+import pt.isel.jsonParser.parsers.dynamic.JsonParserDynamicAndUnsafe
 import pt.isel.sample.generalTests.Person
 import kotlin.test.Test
 import kotlin.test.assertEquals

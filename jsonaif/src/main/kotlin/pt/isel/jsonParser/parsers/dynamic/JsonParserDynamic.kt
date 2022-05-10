@@ -5,18 +5,13 @@ import com.squareup.javapoet.JavaFile
 import com.squareup.javapoet.MethodSpec
 import com.squareup.javapoet.TypeSpec
 import pt.isel.JsonTokens
-import pt.isel.OBJECT_END
-import pt.isel.OBJECT_OPEN
 import pt.isel.jsonConvert.JsonConvert
 import pt.isel.jsonConvert.JsonConvertData
-import pt.isel.jsonParser.AbstractJsonParser
 import pt.isel.jsonParser.ParseException
 import pt.isel.jsonParser.basicParser
 import pt.isel.jsonParser.capitalize
-import pt.isel.jsonParser.hasOptionalPrimaryConstructor
 import pt.isel.jsonParser.loadAndCreateInstance
 import pt.isel.jsonParser.parsers.reflect.setters.Setter
-import java.lang.reflect.GenericSignatureFormatError
 import javax.lang.model.element.Modifier
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
@@ -30,32 +25,21 @@ import kotlin.reflect.jvm.jvmName
 /**
  * JSON parser using runtime source file generation (using JavaPoet).
  */
-object JsonParserDynamic : AbstractJsonParser() {
+object JsonParserDynamic : AbstractJsonParserDynamic() {
 
-    override fun parseObject(tokens: JsonTokens, klass: KClass<*>): Any {
-        tokens.pop(OBJECT_OPEN)
-        tokens.trim() // Added to allow for empty object
-
-        if (!isParseable(klass))
-            throw ParseException(
-                "Class ${klass.qualifiedName} is not valid to parse: " +
-                    "all parameters of the primary constructor must be properties"
-            )
-
-        val hasNoArgsCtor = klass.hasOptionalPrimaryConstructor()
-        if (!hasNoArgsCtor)
-            throw ParseException(
-                "JsonParserDynamic can only parse classes with" +
-                    " optional primary constructor (all vars with default value)"
-            )
-
-        setters.computeIfAbsent(klass) { loadSetters(klass, hasNoArgsCtor) }
-
+    /**
+     * Gets the [klass] instance with [tokens] data.
+     * @param tokens JSON tokens
+     * @param klass represents a class
+     * @param hasNoArgsCtor true if the [klass]' primary constructor are all mutable properties with default values
+     *
+     * @return [klass] instance with [tokens] data
+     */
+    override fun getInstance(tokens: JsonTokens, klass: KClass<*>, hasNoArgsCtor: Boolean): Any {
         val instance = klass.createInstance()
 
         traverseJsonObject(tokens, klass, instance)
 
-        tokens.pop(OBJECT_END)
         return instance
     }
 
@@ -75,7 +59,8 @@ object JsonParserDynamic : AbstractJsonParser() {
         when {
             !hasNoArgsCtor ->
                 throw ParseException(
-                    "Dynamic parser only parses objects that primary constructor are all mutable properties with default values"
+                    "Dynamic parser only parses objects that primary constructor are " +
+                        "all mutable properties with default values"
                 )
             kParam.hasAnnotation<JsonConvert>() -> getAnnotatedPropertySetter(klass, kParam)
             else -> getPropertySetter(klass, kParam)
@@ -191,20 +176,4 @@ object JsonParserDynamic : AbstractJsonParser() {
                 ".INSTANCE.parse(tokens, kotlin.jvm.JvmClassMappingKt.getKotlinClass(" +
                 "${listObjectTypeKlass?.javaObjectType?.name ?: propertyKlass.javaObjectType.name}.class));\n"
     }
-
-    /**
-     * Gets the type of the list object.
-     *
-     * @param propertyKType JSON property KType
-     * @param propertyKlass JSON property KClass
-     *
-     * @return representation of the list object type
-     */
-    private fun getListObjectType(propertyKType: KType, propertyKlass: KClass<*>): KClass<*>? =
-        if (propertyKlass == List::class) {
-            val type = propertyKType.arguments.first().type
-                ?: throw GenericSignatureFormatError("List generics cannot have star projection types")
-
-            type.classifier as KClass<*>
-        } else null
 }
