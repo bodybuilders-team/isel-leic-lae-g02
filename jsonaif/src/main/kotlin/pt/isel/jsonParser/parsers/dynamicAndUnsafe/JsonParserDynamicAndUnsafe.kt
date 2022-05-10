@@ -1,5 +1,6 @@
-package pt.isel.jsonParser.parsers.dynamic
+package pt.isel.jsonParser.parsers.dynamicAndUnsafe
 
+import com.squareup.javapoet.ClassName
 import com.squareup.javapoet.CodeBlock
 import com.squareup.javapoet.JavaFile
 import com.squareup.javapoet.MethodSpec
@@ -7,6 +8,7 @@ import com.squareup.javapoet.TypeSpec
 import pt.isel.JsonTokens
 import pt.isel.OBJECT_END
 import pt.isel.OBJECT_OPEN
+import pt.isel.UnsafeUtils.unsafe
 import pt.isel.jsonConvert.JsonConvert
 import pt.isel.jsonConvert.JsonConvertData
 import pt.isel.jsonParser.AbstractJsonParser
@@ -21,7 +23,6 @@ import javax.lang.model.element.Modifier
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
 import kotlin.reflect.KType
-import kotlin.reflect.full.createInstance
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.jvm.javaType
@@ -30,8 +31,9 @@ import kotlin.reflect.jvm.jvmName
 /**
  * JSON parser using runtime source file generation (using JavaPoet).
  */
-object JsonParserDynamic : AbstractJsonParser() {
-
+// TODO: 10/05/2022 Add default value usage (since constructor is not called, default values are ignored)
+// TODO: 10/05/2022 Check nullable types.
+object JsonParserDynamicAndUnsafe : AbstractJsonParser() {
     override fun parseObject(tokens: JsonTokens, klass: KClass<*>): Any {
         tokens.pop(OBJECT_OPEN)
         tokens.trim() // Added to allow for empty object
@@ -43,15 +45,10 @@ object JsonParserDynamic : AbstractJsonParser() {
             )
 
         val hasNoArgsCtor = klass.hasOptionalPrimaryConstructor()
-        if (!hasNoArgsCtor)
-            throw ParseException(
-                "JsonParserDynamic can only parse classes with" +
-                    " optional primary constructor (all vars with default value)"
-            )
 
         setters.computeIfAbsent(klass) { loadSetters(klass, hasNoArgsCtor) }
 
-        val instance = klass.createInstance()
+        val instance = unsafe.allocateInstance(klass.java)
 
         traverseJsonObject(tokens, klass, instance)
 
@@ -73,10 +70,6 @@ object JsonParserDynamic : AbstractJsonParser() {
      */
     override fun getSetter(klass: KClass<*>, kParam: KParameter, hasNoArgsCtor: Boolean) =
         when {
-            !hasNoArgsCtor ->
-                throw ParseException(
-                    "Dynamic parser only parses objects that primary constructor are all mutable properties with default values"
-                )
             kParam.hasAnnotation<JsonConvert>() -> getAnnotatedPropertySetter(klass, kParam)
             else -> getPropertySetter(klass, kParam)
         }
@@ -90,7 +83,7 @@ object JsonParserDynamic : AbstractJsonParser() {
      * @return [kParam] setter
      */
     private fun getPropertySetter(klass: KClass<*>, kParam: KParameter): Setter =
-        setter(klass, kParam, kParam.type, valueDeclaration = "value")
+        setter(klass, kParam, kParam.type, valueDeclaration = "value", false)
 
     /**
      * Gets the property setter knowing it has a [JsonConvert] annotation.
@@ -113,7 +106,8 @@ object JsonParserDynamic : AbstractJsonParser() {
             klass,
             kParam,
             jsonConvertData.propType,
-            valueDeclaration = "${converterClass.qualifiedName}.INSTANCE.convert(value)"
+            valueDeclaration = "${converterClass.qualifiedName}.INSTANCE.convert(value)",
+            castToType = true
         )
     }
 
@@ -135,15 +129,15 @@ object JsonParserDynamic : AbstractJsonParser() {
         klass: KClass<*>,
         kParam: KParameter,
         jsonPropertyKType: KType,
-        valueDeclaration: String
+        valueDeclaration: String,
+        castToType: Boolean
     ): Setter {
-        val klassName = klass.qualifiedName ?: throw ParseException("Class name is null")
         val kParamName = kParam.name ?: throw ParseException("Param name is null")
 
         val applyCode = CodeBlock
             .builder()
-            .add(getPropertyParsingCode(jsonPropertyKType))
-            .add("(($klassName)target).set${kParamName.capitalize()}($valueDeclaration);\n")
+            .add(getPropertyParsingCode(jsonPropertyKType, castToType))
+            .add("unsafe.put${getUnsafeSetterTypeString(jsonPropertyKType)}(target, offset, $valueDeclaration);\n")
             .build()
 
         val apply = MethodSpec.methodBuilder("apply")
@@ -154,27 +148,52 @@ object JsonParserDynamic : AbstractJsonParser() {
             .returns(Void.TYPE)
             .build()
 
+        val unsafeUtils = ClassName.get("pt.isel", "UnsafeUtils")
+
+        val staticBlock = CodeBlock
+            .builder()
+            .beginControlFlow("try")
+            .addStatement(
+                "offset = unsafe.objectFieldOffset(${klass.qualifiedName}.class.getDeclaredField(\"$kParamName\"))"
+            )
+            .nextControlFlow("catch (NoSuchFieldException e)")
+            .addStatement("throw new RuntimeException(e)")
+            .endControlFlow()
+            .build()
+
         val setter = TypeSpec.classBuilder("Setter${klass.simpleName}_$kParamName")
             .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
             .addSuperinterface(Setter::class.java)
+            .addField(Long::class.java, "offset", Modifier.STATIC, Modifier.PRIVATE)
+            .addStaticBlock(staticBlock)
             .addMethod(apply)
             .build()
 
         val javaFile = JavaFile.builder("", setter)
+            .addStaticImport(unsafeUtils, "unsafe")
             .build()
 
         return loadAndCreateInstance(javaFile) as Setter
+    }
+
+    private fun getUnsafeSetterTypeString(propertyKType: KType): String {
+        val propertyKlass = propertyKType.classifier as KClass<*>
+
+        return if (basicParser[propertyKlass] != null)
+            propertyKlass.jvmName.capitalize()
+        else
+            "Object"
     }
 
     /**
      * Gets the code to be used in [setter] regarding the parsing of the property into a variable.
      *
      * If the [propertyKType] is a primitive type, the property is parsed using its primitive string parser.
-     * Otherwise, the property is parsed using [JsonParserDynamic] parse and then cast to the type.
+     * Otherwise, the property is parsed using [JsonParserDynamicAndUnsafe] parse and then cast to the type.
      *
      * @param propertyKType property type
      */
-    private fun getPropertyParsingCode(propertyKType: KType): String {
+    private fun getPropertyParsingCode(propertyKType: KType, castToType: Boolean): String {
         val propertyKlass = propertyKType.classifier as KClass<*>
         val listObjectTypeKlass: KClass<*>? = getListObjectType(propertyKType, propertyKlass)
 
@@ -187,7 +206,9 @@ object JsonParserDynamic : AbstractJsonParser() {
             "${propertyKlass.jvmName} value = ${propertyKlass.javaObjectType.simpleName}" +
                 ".parse${propertyKlass.simpleName}(tokens.popWordPrimitive().trim());\n"
         else
-            "$kParamObjectTypeName value = ($kParamObjectTypeName) ${JsonParserDynamic::class.qualifiedName}" +
+            "${if (castToType) kParamObjectTypeName else "Object"} value =" +
+                " ${if (castToType) "($kParamObjectTypeName)" else ""}" +
+                " ${JsonParserDynamicAndUnsafe::class.qualifiedName}" +
                 ".INSTANCE.parse(tokens, kotlin.jvm.JvmClassMappingKt.getKotlinClass(" +
                 "${listObjectTypeKlass?.javaObjectType?.name ?: propertyKlass.javaObjectType.name}.class));\n"
     }
@@ -208,3 +229,10 @@ object JsonParserDynamic : AbstractJsonParser() {
             type.classifier as KClass<*>
         } else null
 }
+
+data class Date(
+    val day: Int,
+    val month: Int,
+    val monthStr: String,
+    val year: Int = 2000,
+)
