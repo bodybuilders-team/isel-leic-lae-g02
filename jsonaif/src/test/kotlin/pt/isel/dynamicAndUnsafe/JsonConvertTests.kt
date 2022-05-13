@@ -21,16 +21,6 @@ class JsonConvertTests {
         assertEquals(cake.mainFlavor, "Cocoa")
     }
 
-// TODO: 10/05/2022 Fix this test
-//    @Test
-//    fun `Parse object with non optional property annotated with JsonConvert (AnnotatedPropertySetter)`() {
-//        val json = "{ expDate: \"1998-11-17\" }"
-//        val cake = JsonParserDynamicAndUnsafe.parse(json, Cake2::class) as Cake2
-//
-//        assertEquals(cake.expDate, Date(17, 11, 1998))
-//        assertEquals(cake.mainFlavor, "Cocoa")
-//    }
-
     @Test
     fun `Parse object with property annotated with JsonConvert but the converter class is missing convert function`() {
         val json = "{ expDate: \"1998-11-17\" }"

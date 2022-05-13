@@ -11,3 +11,15 @@ data class Date2(
     var month: String = "",
     var year: String = ""
 )
+
+data class ConstantDate(
+    val day: Int,
+    val month: Int,
+    val year: Int
+)
+
+data class ConstantDate2(
+    val day: String,
+    val month: String,
+    val year: String
+)

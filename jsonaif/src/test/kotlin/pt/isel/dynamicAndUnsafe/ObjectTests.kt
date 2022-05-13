@@ -114,16 +114,6 @@ class ObjectTests {
         assertEquals("Nyckollas Brandão", classroom.students[2].name)
     }
 
-    // TODO: 10/05/2022 Fix this test
-//    @Test
-//    fun `Parse object with no optional parameters missing parameters throws`() {
-//        val json = "{ name: \"LAE\" }"
-//
-//        assertFailsWith<IllegalArgumentException> {
-//            JsonParserDynamicAndUnsafe.parse(json, Classroom::class) as Classroom
-//        }
-//    }
-
     @Test
     fun `Parse object with no primary constructor throws`() {
         val json = "{ i: 50 }"
@@ -132,14 +122,4 @@ class ObjectTests {
             JsonParserDynamicAndUnsafe.parse(json, MissingPrimaryConstructor::class) as MissingPrimaryConstructor
         }
     }
-
-// TODO: 10/05/2022 Fix this test by adding nullable type safety
-//    @Test
-//    fun `Parse object with null on a not nullable property throws`() {
-//        val json = "{ name: \"LAE\", students: null }"
-//
-//        assertFailsWith<ParseException> {
-//            JsonParserDynamicAndUnsafe.parse(json, Classroom::class) as Classroom
-//        }
-//    }
 }

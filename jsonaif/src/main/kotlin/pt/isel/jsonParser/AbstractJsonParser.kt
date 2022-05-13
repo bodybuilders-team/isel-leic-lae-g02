@@ -55,15 +55,15 @@ abstract class AbstractJsonParser : JsonParser {
         val unparsedValue = tokens.popWordPrimitive().trim()
         if (unparsedValue == NULL_STRING) return null
 
-        val parseException = ParseException("Value $unparsedValue is not of expected class ${klass.qualifiedName}")
-        val parser = basicParser[klass] ?: throw parseException
+        val parser = basicParser[klass]
+            ?: throw ParseException("Value $unparsedValue is not of expected class ${klass.qualifiedName}")
 
         try {
             return parser(unparsedValue)
         } catch (err: NumberFormatException) {
-            throw parseException
+            throw ParseException("Value $unparsedValue is not of expected class ${klass.qualifiedName}")
         } catch (err: IllegalArgumentException) {
-            throw parseException
+            throw ParseException("Value $unparsedValue is not of expected class ${klass.qualifiedName}")
         }
     }
 

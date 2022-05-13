@@ -26,8 +26,6 @@ import kotlin.reflect.jvm.jvmName
 /**
  * JSON parser using runtime source file generation (using JavaPoet).
  */
-// TODO: 10/05/2022 Add default value usage (since constructor is not called, default values are ignored)
-// TODO: 10/05/2022 Check nullable types.
 object JsonParserDynamicAndUnsafe : AbstractJsonParserDynamic() {
 
     /**
@@ -112,6 +110,7 @@ object JsonParserDynamicAndUnsafe : AbstractJsonParserDynamic() {
      * @param kParam param to get setter
      * @param jsonPropertyKType property type
      * @param valueDeclaration expression to be used in the setter
+     * @param castToType true if the value should be cast to the property type
      *
      * @return [kParam] setter
      */
@@ -151,7 +150,7 @@ object JsonParserDynamicAndUnsafe : AbstractJsonParserDynamic() {
             .endControlFlow()
             .build()
 
-        val setter = TypeSpec.classBuilder("Setter${klass.simpleName}_$kParamName")
+        val setter = TypeSpec.classBuilder("DynamicAndUnsafeSetter${klass.simpleName}_$kParamName")
             .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
             .addSuperinterface(Setter::class.java)
             .addField(Long::class.java, "offset", Modifier.STATIC, Modifier.PRIVATE)
@@ -166,7 +165,9 @@ object JsonParserDynamicAndUnsafe : AbstractJsonParserDynamic() {
         return loadAndCreateInstance(javaFile) as Setter
     }
 
-    // TODO: 10/05/2022 Comment
+    /**
+     * Retrieves the unsafe function setter name type string.
+     */
     private fun getUnsafeSetterTypeString(propertyKType: KType): String {
         val propertyKlass = propertyKType.classifier as KClass<*>
 

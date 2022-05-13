@@ -139,7 +139,7 @@ object JsonParserDynamic : AbstractJsonParserDynamic() {
             .returns(Void.TYPE)
             .build()
 
-        val setter = TypeSpec.classBuilder("Setter${klass.simpleName}_$kParamName")
+        val setter = TypeSpec.classBuilder("DynamicSetter${klass.simpleName}_$kParamName")
             .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
             .addSuperinterface(Setter::class.java)
             .addMethod(apply)

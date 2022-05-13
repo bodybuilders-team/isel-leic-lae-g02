@@ -8,37 +8,28 @@
 
 plugins {
     // Apply the org.jetbrains.kotlin.jvm Plugin to add support for Kotlin.
-    id 'org.jetbrains.kotlin.jvm' version '1.5.20'
-
+    kotlin("jvm") version "1.6.21"
+    id("org.jlleitschuh.gradle.ktlint") version "10.2.1"
     // Apply the application plugin to add support for building a CLI application in Java.
-    id 'application'
-
-    id 'org.jlleitschuh.gradle.ktlint' version '10.2.1'
+    application
 }
 
 repositories {
     // Use JCenter for resolving dependencies.
-    jcenter()
+    mavenCentral()
 }
 
 dependencies {
-    implementation('org.jetbrains.kotlin:kotlin-reflect')
-    implementation('com.squareup:javapoet:1.13.0')
+    implementation("com.squareup:javapoet:1.13.0")
 
-    // Align versions of all Kotlin components
-    implementation platform('org.jetbrains.kotlin:kotlin-bom')
-
-    // Use the Kotlin JDK 8 standard library.
-    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
+    // For using the reflection features
+    implementation("org.jetbrains.kotlin:kotlin-reflect")
 
     // Use the Kotlin test library.
-    testImplementation 'org.jetbrains.kotlin:kotlin-test'
-
-    // Use the Kotlin JUnit integration.
-    testImplementation 'org.jetbrains.kotlin:kotlin-test-junit'
+    testImplementation(kotlin("test"))
 }
 
 application {
     // Define the main class for the application.
-    mainClass = 'pt.isel.AppKt'
+    mainClass.set("pt.isel.AppKt")
 }
