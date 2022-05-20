@@ -28,6 +28,34 @@ abstract class AbstractJsonParser : JsonParser {
 
     override fun parse(source: String, klass: KClass<*>): Any? = parse(JsonTokens(source), klass)
 
+    // TODO: 20/05/2022 Add parseSequence to the interface JsonParser
+    /**
+     * Parses the JSON string into a sequence of [T].
+     * The passed JSON needs to be a valid JSON array.
+     *
+     * @param json JSON string
+     *
+     * @return [T] sequence
+     * @throws [ParseException] if the JSON is not a valid array
+     */
+    inline fun <reified T> JsonParser.parseSequence(json: String): Sequence<T?> = sequence {
+        val tokens = JsonTokens(json)
+        if (tokens.current != ARRAY_OPEN) throw ParseException("Invalid JSON array")
+
+        tokens.pop(ARRAY_OPEN)
+        tokens.trim() // Added to allow for empty arrays
+
+        while (tokens.current != ARRAY_END) {
+            val value = parse(tokens, T::class)
+            yield(value as T?)
+
+            tokens.popCommaIfExists()
+            tokens.trim()
+        }
+
+        tokens.pop(ARRAY_END)
+    }
+
     /**
      * Parses the JSON tokens with a class representation.
      * @param tokens JSON tokens
