@@ -1,6 +1,7 @@
 package pt.isel.reflect
 
 import pt.isel.jsonParser.ParseException
+import pt.isel.jsonParser.parse
 import pt.isel.jsonParser.parsers.reflect.JsonParserReflect
 import pt.isel.sample.generalTests.MissingPrimaryConstructor
 import pt.isel.sample.generalTests.Person
@@ -13,6 +14,8 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
 
 class ObjectTests {
+
+    // parse without generics
 
     @Test
     fun `Parse object with optional mutable properties given all properties`() {
@@ -139,5 +142,71 @@ class ObjectTests {
         assertFailsWith<ParseException> {
             JsonParserReflect.parse(json, Classroom::class) as Classroom
         }
+    }
+
+    // parse with generics
+
+    @Test
+    fun `Parse object with optional mutable properties given all properties with generics`() {
+        val json = "{ name: \"Ze Manel\", nr: 7353 }"
+        val student: Student = JsonParserReflect.parse(json)!!
+        assertEquals("Ze Manel", student.name)
+        assertEquals(7353, student.nr)
+    }
+
+    @Test
+    fun `Parse object with optional immutable properties given all properties with generics`() {
+        val json = "{ name: \"Ze Manel\", nr: 7353 }"
+        val student = JsonParserReflect.parse<Student2>(json)!!
+        assertEquals("Ze Manel", student.name)
+        assertEquals(7353, student.nr)
+    }
+
+    @Test
+    fun `Parse object without primitives with generics`() {
+        val json = "{ name: \"Ze Manel\" }"
+        val student = JsonParserReflect.parse<Student>(json)!!
+        assertEquals("Ze Manel", student.name)
+        assertEquals(0, student.nr)
+    }
+
+    @Test
+    fun `Parse object only with primitives with generics`() {
+        val json = "{ nr: 1234 }"
+        val student = JsonParserReflect.parse<Student>(json)!!
+        assertEquals(1234, student.nr)
+    }
+
+    @Test
+    fun `Parse object with null property with generics`() {
+        val json = "{ name: null }"
+        val student = JsonParserReflect.parse<Student>(json)!!
+        assertNull(student.name)
+    }
+
+    @Test
+    fun `Parse object with wrong property type with generics throws`() {
+        val json = "{ name: 123 }"
+        assertFailsWith<ParseException> {
+            JsonParserReflect.parse<Student>(json)!!
+        }
+    }
+
+    @Test
+    fun `Parse object with non optional property with generics`() {
+        val json = "{ id: 94646, name: \"Ze Manel\" }"
+        val person = JsonParserReflect.parse<Person>(json)!!
+
+        assertEquals(94646, person.id)
+        assertEquals("Ze Manel", person.name)
+    }
+
+    @Test
+    fun `Parse empty object with generics`() {
+        val json = "{ }"
+        val student = JsonParserReflect.parse<Student>(json)!!
+
+        assertEquals(0, student.nr)
+        assertNull(student.name)
     }
 }

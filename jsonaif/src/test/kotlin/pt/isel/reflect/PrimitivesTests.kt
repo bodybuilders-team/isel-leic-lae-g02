@@ -1,6 +1,7 @@
 package pt.isel.reflect
 
 import pt.isel.jsonParser.ParseException
+import pt.isel.jsonParser.parse
 import pt.isel.jsonParser.parsers.reflect.JsonParserReflect
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -9,10 +10,13 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 /**
- * In these tests, primitives in the unparsed strings  are followed by a comma because JsonTokens.kt forces
+ * In these tests, primitives in the unparsed strings are followed by a comma because JsonTokens.kt forces
  * a primitive to end in a comma, object end, or array end.
  */
 class PrimitivesTests {
+
+    // parse without generics
+
     @Test
     fun `Parse string works`() {
         val unparsedStr = "\"hello world\","
@@ -119,5 +123,70 @@ class PrimitivesTests {
         assertFailsWith<ParseException> {
             JsonParserReflect.parse(unparsedValue, String::class)
         }
+    }
+
+    // parse with generics
+
+    @Test
+    fun `Parse string with generics works`() {
+        val unparsedStr = "\"hello world\","
+        val parsedStr = JsonParserReflect.parse<String>(unparsedStr)
+        assertEquals("hello world", parsedStr)
+    }
+
+    @Test
+    fun `Parse integer number with generics works`() {
+        val unparsedNr = "123,"
+        val nr = JsonParserReflect.parse<Int>(unparsedNr)
+        assertEquals(123, nr)
+    }
+
+    @Test
+    fun `Parse long number with generics works`() {
+        val unparsedNr = "1235379344321,"
+        val nr = JsonParserReflect.parse<Long>(unparsedNr)
+        assertEquals(1235379344321, nr)
+    }
+
+    @Test
+    fun `Parse short number with generics works`() {
+        val unparsedNr = "123,"
+        val nr = JsonParserReflect.parse<Short>(unparsedNr)
+        assertEquals(123, nr)
+    }
+
+    @Test
+    fun `Parse byte number with generics works`() {
+        val unparsedNr = "90,"
+        val nr = JsonParserReflect.parse<Byte>(unparsedNr)
+        assertEquals(90, nr)
+    }
+
+    @Test
+    fun `Parse floating-point number with generics works`() {
+        val unparsedNr = "123.2,"
+        val nr = JsonParserReflect.parse<Float>(unparsedNr)
+        assertEquals(123.2f, nr)
+    }
+
+    @Test
+    fun `Parse true boolean value with generics works`() {
+        val unparsedNr = "true,"
+        val parsed = JsonParserReflect.parse<Boolean>(unparsedNr)
+        assertTrue(parsed!!)
+    }
+
+    @Test
+    fun `Parse false boolean value with generics works`() {
+        val unparsedNr = "false,"
+        val parsed: Boolean? = JsonParserReflect.parse(unparsedNr)
+        assertFalse(parsed!!)
+    }
+
+    @Test
+    fun `Parse null value with generics works`() {
+        val unparsedNr = "null,"
+        val nr: Int? = JsonParserReflect.parse(unparsedNr)
+        assertEquals(null, nr)
     }
 }

@@ -1,4 +1,4 @@
-package pt.isel
+package pt.isel.utils
 
 import sun.misc.Unsafe
 

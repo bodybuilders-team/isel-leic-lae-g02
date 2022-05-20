@@ -6,7 +6,6 @@ import com.squareup.javapoet.JavaFile
 import com.squareup.javapoet.MethodSpec
 import com.squareup.javapoet.TypeSpec
 import pt.isel.JsonTokens
-import pt.isel.UnsafeUtils.unsafe
 import pt.isel.jsonConvert.JsonConvert
 import pt.isel.jsonConvert.JsonConvertData
 import pt.isel.jsonParser.ParseException
@@ -14,6 +13,7 @@ import pt.isel.jsonParser.basicParser
 import pt.isel.jsonParser.capitalize
 import pt.isel.jsonParser.loadAndCreateInstance
 import pt.isel.jsonParser.parsers.reflect.setters.Setter
+import pt.isel.utils.UnsafeUtils.unsafe
 import javax.lang.model.element.Modifier
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
@@ -137,7 +137,7 @@ object JsonParserDynamicAndUnsafe : AbstractJsonParserDynamic() {
             .returns(Void.TYPE)
             .build()
 
-        val unsafeUtils = ClassName.get("pt.isel", "UnsafeUtils")
+        val unsafeUtils = ClassName.get("pt.isel.utils", "UnsafeUtils")
 
         val staticBlock = CodeBlock
             .builder()
