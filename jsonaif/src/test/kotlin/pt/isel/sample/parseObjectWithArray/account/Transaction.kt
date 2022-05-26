@@ -1,11 +1,12 @@
 package pt.isel.sample.parseObjectWithArray.account
 
 /**
- * Used in Account (list of transactions).
- * No optional parameters.
+ * Used in Account2 (list of transactions).
+ * All optional parameters.
+ * All properties are "var".
  */
 data class Transaction(
-    val fromId: String,
-    val toId: String,
-    val amount: Double
+    var fromId: String = "123",
+    var toId: String = "321",
+    var amount: Double = 15.0
 )

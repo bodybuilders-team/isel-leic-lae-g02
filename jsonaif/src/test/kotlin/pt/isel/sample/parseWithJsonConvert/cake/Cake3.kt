@@ -5,10 +5,10 @@ import pt.isel.sample.generalTests.Date
 
 /**
  * Used to test parsing with JsonConvert annotation.
- * One parameter is optional ([mainFlavor]).
- * All properties are "val".
+ * All parameters are optional.
+ * All properties are "var".
  */
 data class Cake3(
-    @JsonConvert(ConverterMissingFunction::class) val expDate: Date,
-    val mainFlavor: String = "Cocoa"
+    @JsonConvert(ConverterMissingFunction::class) var expDate: Date = Date(1, 1, 2000),
+    var mainFlavor: String = "Cocoa"
 )

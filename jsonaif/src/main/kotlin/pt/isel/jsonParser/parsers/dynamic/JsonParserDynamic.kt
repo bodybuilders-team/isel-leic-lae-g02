@@ -103,7 +103,7 @@ object JsonParserDynamic : AbstractJsonParserDynamic() {
     }
 
     /**
-     * Gets the setter, by building a specific setter class for the property a .java file for it.
+     * Gets the setter, by building a specific setter class for the property and a .java file for it.
      *
      * The code of apply method of the setter consists of the following:
      * - the parsing of the property into a variable

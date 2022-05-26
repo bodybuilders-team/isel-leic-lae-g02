@@ -8,6 +8,6 @@ package pt.isel.sample.generalTests
 data class Person2(
     var id: Int = 0,
     var name: String = "Bob",
-    var birth: Date? = null,
-    var sibling: Person? = null
+    var birth: Date2? = null,
+    var sibling: Person2? = null
 )

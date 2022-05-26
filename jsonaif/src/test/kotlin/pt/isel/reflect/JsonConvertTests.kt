@@ -1,60 +1,49 @@
 package pt.isel.reflect
 
-import pt.isel.jsonParser.ParseException
+import pt.isel.jsonParser.parseNotNull
 import pt.isel.jsonParser.parsers.reflect.JsonParserReflect
 import pt.isel.sample.generalTests.Date
-import pt.isel.sample.parseWithJsonConvert.cake.Cake
 import pt.isel.sample.parseWithJsonConvert.cake.Cake2
-import pt.isel.sample.parseWithJsonConvert.cake.Cake3
-import pt.isel.sample.parseWithJsonConvert.cake.Cake4
-import pt.isel.sample.parseWithJsonConvert.cake.Cake5
+import pt.isel.testfunctions.JsonConvertTestsFunctions
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
 
 class JsonConvertTests {
+
     @Test
     fun `Parse object with optional mutable property annotated with JsonConvert (AnnotatedParamSetter)`() {
-        val json = "{ expDate: \"1998-11-17\" }"
-        val cake = JsonParserReflect.parse(json, Cake::class) as Cake
+        JsonConvertTestsFunctions.`Parse object with optional mutable property annotated with JsonConvert (AnnotatedParamSetter)`(
+            JsonParserReflect
+        )
+    }
 
-        assertEquals(cake.expDate, Date(17, 11, 1998))
-        assertEquals(cake.mainFlavor, "Cocoa")
+    @Test
+    fun `Parse object with property annotated with JsonConvert but the converter class is missing convert function`() {
+        JsonConvertTestsFunctions.`Parse object with property annotated with JsonConvert but the converter class is missing convert function`(
+            JsonParserReflect
+        )
+    }
+
+    @Test
+    fun `Parse object with property annotated with JsonConvert but the converter class doesn't implement JsonConverter interface`() {
+        JsonConvertTestsFunctions.`Parse object with property annotated with JsonConvert but the converter class doesn't implement JsonConverter interface`(
+            JsonParserReflect
+        )
+    }
+
+    @Test
+    fun `Parse object with property annotated with JsonConvert but the converter class isn't an object`() {
+        JsonConvertTestsFunctions.`Parse object with property annotated with JsonConvert but the converter class isn't an object`(
+            JsonParserReflect
+        )
     }
 
     @Test
     fun `Parse object with non optional property annotated with JsonConvert (AnnotatedPropertySetter)`() {
         val json = "{ expDate: \"1998-11-17\" }"
-        val cake = JsonParserReflect.parse(json, Cake2::class) as Cake2
+        val cake = JsonParserReflect.parseNotNull<Cake2>(json)
 
         assertEquals(cake.expDate, Date(17, 11, 1998))
         assertEquals(cake.mainFlavor, "Cocoa")
-    }
-
-    @Test
-    fun `Parse object with property annotated with JsonConvert but the converter class is missing convert function`() {
-        val json = "{ expDate: \"1998-11-17\" }"
-
-        assertFailsWith<ParseException> {
-            JsonParserReflect.parse(json, Cake3::class) as Cake3
-        }
-    }
-
-    @Test
-    fun `Parse object with property annotated with JsonConvert but the converter class doesn't implement JsonConverter interface`() {
-        val json = "{ expDate: \"1998-11-17\" }"
-
-        assertFailsWith<ParseException> {
-            JsonParserReflect.parse(json, Cake4::class) as Cake4
-        }
-    }
-
-    @Test
-    fun `Parse object with property annotated with JsonConvert but the converter class isn't an object`() {
-        val json = "{ expDate: \"1998-11-17\" }"
-
-        assertFailsWith<ParseException> {
-            JsonParserReflect.parse(json, Cake5::class) as Cake5
-        }
     }
 }

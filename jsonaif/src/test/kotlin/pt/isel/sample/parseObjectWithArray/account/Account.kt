@@ -2,10 +2,11 @@ package pt.isel.sample.parseObjectWithArray.account
 
 /**
  * Used to test parsing an object (Account) with an array (list os Transaction).
- * No optional parameters.
+ * All optional parameters.
+ * All properties are "var".
  */
 data class Account(
-    val id: String,
-    var balance: Double,
-    val transactions: List<Transaction>
+    var id: String = "123",
+    var balance: Double = 100.0,
+    var transactions: List<Transaction> = emptyList()
 )

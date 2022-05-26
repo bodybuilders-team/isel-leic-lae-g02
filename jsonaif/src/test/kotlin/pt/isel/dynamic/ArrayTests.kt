@@ -1,19 +1,18 @@
 package pt.isel.dynamic
 
 import pt.isel.jsonParser.parsers.dynamic.JsonParserDynamic
-import pt.isel.sample.generalTests.Person
+import pt.isel.testfunctions.ArrayTestsFunctions
 import kotlin.test.Test
-import kotlin.test.assertEquals
 
 class ArrayTests {
 
     @Test
+    fun `Parse array works`() {
+        ArrayTestsFunctions.`Parse array works`(JsonParserDynamic)
+    }
+
+    @Test
     fun `Parse empty array works`() {
-        val json = "[ ]"
-
-        @Suppress("UNCHECKED_CAST")
-        val persons = JsonParserDynamic.parse(json, Person::class) as List<Person>
-
-        assertEquals(0, persons.size)
+        ArrayTestsFunctions.`Parse empty array works`(JsonParserDynamic)
     }
 }
