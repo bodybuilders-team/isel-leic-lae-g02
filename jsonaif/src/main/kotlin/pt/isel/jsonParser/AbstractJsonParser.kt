@@ -9,6 +9,7 @@ import pt.isel.OBJECT_END
 import pt.isel.OBJECT_OPEN
 import pt.isel.jsonParser.parsers.reflect.setters.Setter
 import pt.isel.jsonProperty.getJsonPropertyName
+import java.io.File
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
 import kotlin.reflect.full.memberProperties
@@ -56,6 +57,46 @@ abstract class AbstractJsonParser : JsonParser {
         tokens.pop(ARRAY_END)
     }
 
+    // TODO: 26/05/2022 Test
+    /**
+     * Returns a list of [T] parsed from each file in the [path] directory.
+     *
+     * @param path path to the directory
+     *
+     * @return list of [T]
+     * @throws [ParseException] if any file in the directory is not a valid JSON object compatible with [T]
+     */
+    @Suppress("UNCHECKED_CAST")
+    inline fun <reified T> parseFolderEager(path: String): List<T?> =
+        File(path).walkTopDown()
+            .filter { it.isFile }
+            .map {
+                val json = it.readText()
+                val tokens = JsonTokens(json)
+
+                return@map parseObject(tokens, T::class)
+            }.toList() as List<T?>
+
+    // TODO: 26/05/2022 Test
+    /**
+     * Returns a sequence of [T] parsed from each file in the [path] directory.
+     *
+     * @param path path to the directory
+     *
+     * @return sequence of [T]
+     * @throws [ParseException] if any file in the directory is not a valid JSON object compatible with [T]
+     */
+    @Suppress("UNCHECKED_CAST")
+    inline fun <reified T> parseFolderLazy(path: String): Sequence<T?> =
+        File(path).walkTopDown()
+            .filter { it.isFile }
+            .map {
+                val json = it.readText()
+                val tokens = JsonTokens(json)
+
+                return@map parseObject(tokens, T::class)
+            } as Sequence<T?>
+
     /**
      * Parses the JSON tokens with a class representation.
      * @param tokens JSON tokens
@@ -101,7 +142,7 @@ abstract class AbstractJsonParser : JsonParser {
      * @param klass represents a class
      * @return [klass] instance with [tokens] data
      */
-    private fun parseObject(tokens: JsonTokens, klass: KClass<*>): Any {
+    fun parseObject(tokens: JsonTokens, klass: KClass<*>): Any {
         tokens.pop(OBJECT_OPEN)
         tokens.trim() // Added to allow for empty object
 
