@@ -47,7 +47,6 @@ abstract class AbstractJsonParser : JsonParser {
         tokens.pop(ARRAY_END)
     }
 
-    // TODO: 26/05/2022 Test
     /**
      * Returns a list of [T] parsed from each file in the [path] directory.
      *
@@ -57,8 +56,11 @@ abstract class AbstractJsonParser : JsonParser {
      * @throws [ParseException] if any file in the directory is not a valid JSON object compatible with [T]
      */
     @Suppress("UNCHECKED_CAST")
-    inline fun <reified T> parseFolderEager(path: String): List<T?> =
-        File(path).walkTopDown()
+    inline fun <reified T> parseFolderEager(path: String): List<T?> {
+        val file = File(path)
+        if (!file.exists()) throw ParseException("File $path does not exist")
+
+        return file.walkTopDown()
             .filter { it.isFile }
             .map {
                 val json = it.readText()
@@ -66,8 +68,8 @@ abstract class AbstractJsonParser : JsonParser {
 
                 return@map parseObject(tokens, T::class)
             }.toList() as List<T?>
+    }
 
-    // TODO: 26/05/2022 Test
     /**
      * Returns a sequence of [T] parsed from each file in the [path] directory.
      *
@@ -77,8 +79,11 @@ abstract class AbstractJsonParser : JsonParser {
      * @throws [ParseException] if any file in the directory is not a valid JSON object compatible with [T]
      */
     @Suppress("UNCHECKED_CAST")
-    inline fun <reified T> parseFolderLazy(path: String): Sequence<T?> =
-        File(path).walkTopDown()
+    inline fun <reified T> parseFolderLazy(path: String): Sequence<T?> {
+        val file = File(path)
+        if (!file.exists()) throw ParseException("File $path does not exist")
+
+        return file.walkTopDown()
             .filter { it.isFile }
             .map {
                 val json = it.readText()
@@ -86,6 +91,7 @@ abstract class AbstractJsonParser : JsonParser {
 
                 return@map parseObject(tokens, T::class)
             } as Sequence<T?>
+    }
 
     /**
      * Parses the JSON tokens with a class representation.
