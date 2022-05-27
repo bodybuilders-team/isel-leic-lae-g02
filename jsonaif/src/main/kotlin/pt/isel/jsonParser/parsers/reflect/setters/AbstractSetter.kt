@@ -9,6 +9,8 @@ import kotlin.reflect.KParameter
 
 /**
  * Represents and Abstract Setter.
+ *
+ * @param kParam the parameter to be set
  */
 abstract class AbstractSetter(private val kParam: KParameter) {
 
@@ -19,6 +21,7 @@ abstract class AbstractSetter(private val kParam: KParameter) {
 
     /**
      * Gets the type of the list object.
+     *
      * @return representation of the list object type
      */
     private fun getListObjectType(): KClass<*>? {
@@ -43,8 +46,7 @@ abstract class AbstractSetter(private val kParam: KParameter) {
      * @return parsed value
      */
     fun parse(tokens: JsonTokens): Any? {
-        val propValue =
-            JsonParserReflect.parse(tokens, listObjectTypeKlass ?: typeKlass)
+        val propValue = JsonParserReflect.parse(tokens, listObjectTypeKlass ?: typeKlass)
 
         if (propValue == null && !isNullable)
             throw ParseException("Value of parameter ${kParam.name} should not be null")

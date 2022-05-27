@@ -21,9 +21,10 @@ import kotlin.reflect.full.valueParameters
 fun <T : Any> KClass<T>.hasOptionalPrimaryConstructor(): Boolean {
     val propMap = declaredMemberProperties.associateBy { it.name }
 
-    return primaryConstructor?.valueParameters?.all {
-        it.isOptional && propMap.containsKey(it.name) && propMap[it.name] is KMutableProperty<*>
-    } ?: throw ParseException("Klass $qualifiedName does not have a primary constructor")
+    return primaryConstructor
+        ?.valueParameters
+        ?.all { it.isOptional && propMap.containsKey(it.name) && propMap[it.name] is KMutableProperty<*> }
+        ?: throw ParseException("Klass $qualifiedName does not have a primary constructor")
 }
 
 /**
@@ -62,6 +63,8 @@ fun loadAndCreateInstance(source: JavaFile): Any {
 
 /**
  * Returns a copy of this string having it's first letter uppercased.
+ *
+ * @return string capitalized
  */
 fun String.capitalize() =
     replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }

@@ -18,6 +18,7 @@ import kotlin.reflect.full.primaryConstructor
 
 /**
  * JSON parser using reflection.
+ *
  * @property setters for each domain class we keep a Map<String, Setter> relating properties names with their setters
  */
 object JsonParserReflect : AbstractJsonParser() {

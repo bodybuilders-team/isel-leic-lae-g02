@@ -1,13 +1,22 @@
 package pt.isel;
 
 import java.util.concurrent.TimeUnit;
+
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
-import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.annotations.OutputTimeUnit;
-import org.openjdk.jmh.annotations.Warmup;
+import pt.isel.sample.Classroom;
+import pt.isel.sample.ConstantDate;
+import pt.isel.sample.ConstantDate2;
+import pt.isel.sample.Date;
+import pt.isel.sample.Date2;
 
+
+/**
+ * Benchmark for JsonParser.
+ */
+@SuppressWarnings("unused")
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
 public class JsonParserBenchmark {
@@ -79,5 +88,4 @@ public class JsonParserBenchmark {
     public void parseConstantDateViaDynamicAndUnsafe() {
         JsonParserObjectsKt.jsonDynamicAndUnsafeParse(date2Json, ConstantDate2.class);
     }
-
 }

@@ -12,10 +12,12 @@ import kotlin.reflect.full.memberFunctions
  * @property converterClass the class that follows [JsonConverter] interface
  */
 data class JsonConvertData(val convertAnnotation: JsonConvert) {
+
     val converterClass: KClass<*> = convertAnnotation.converter
 
     val propType = converterClass.run {
-        val convertInterface = supertypes.singleOrNull { it.classifier == JsonConverter::class }
+        val convertInterface = supertypes
+            .singleOrNull { it.classifier == JsonConverter::class }
             ?: throw ParseException(
                 "Class passed as argument to JsonConvert annotation should implement JsonConverter interface"
             )
@@ -24,10 +26,10 @@ data class JsonConvertData(val convertAnnotation: JsonConvert) {
             ?: throw GenericSignatureFormatError("JsonConverter interface types should not be wildcards")
     }
 
-    val convertFunction: KFunction<*> = converterClass.run {
-        memberFunctions.singleOrNull { it.name == "convert" }
-            ?: throw ParseException("JsonConvert argument class should have a convert function")
-    }
+    val convertFunction: KFunction<*> = converterClass
+        .memberFunctions
+        .singleOrNull { it.name == "convert" }
+        ?: throw ParseException("JsonConvert argument class should have a convert function")
 
     val obj = converterClass.objectInstance
         ?: throw ParseException("Class passed as argument to JsonConvert annotation should be an object class")

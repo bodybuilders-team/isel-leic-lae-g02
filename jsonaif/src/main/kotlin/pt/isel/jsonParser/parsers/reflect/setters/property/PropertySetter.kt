@@ -2,9 +2,9 @@ package pt.isel.jsonParser.parsers.reflect.setters.property
 
 import pt.isel.JsonTokens
 import pt.isel.jsonParser.parsers.reflect.setters.AbstractSetter
-import pt.isel.jsonParser.parsers.reflect.setters.IPropertySetter
-import pt.isel.jsonParser.parsers.reflect.setters.IPropertySetterImpl
 import pt.isel.jsonParser.parsers.reflect.setters.Setter
+import pt.isel.jsonParser.parsers.reflect.setters.propertySetter.IPropertySetter
+import pt.isel.jsonParser.parsers.reflect.setters.propertySetter.IPropertySetterImpl
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
 

@@ -10,6 +10,7 @@ const val COLON = ':'
 
 /**
  * Token iterator for a JSON string.
+ *
  * @param json JSON string
  * @property src JSON string as char array
  * @property index current char index
@@ -23,6 +24,7 @@ class JsonTokens(json: String) {
 
     /**
      * Tries to advance in the [src] indexes.
+     *
      * @return true if the advance succeeded
      */
     private fun tryAdvance(): Boolean {
@@ -41,6 +43,7 @@ class JsonTokens(json: String) {
 
     /**
      * Pops a char from [src] and advances.
+     *
      * @return popped char
      */
     @Suppress("unused")
@@ -52,7 +55,9 @@ class JsonTokens(json: String) {
 
     /**
      * Pops the [expected] char from [src] and advances.
+     *
      * @param expected expected char to pop
+     *
      * @return popped char
      * @throws Exception if the current char is not the expected
      */
@@ -64,6 +69,7 @@ class JsonTokens(json: String) {
 
     /**
      * Pops a word finished with [delimiter].
+     *
      * @param delimiter word delimiter
      * @return popped word
      */
@@ -81,6 +87,7 @@ class JsonTokens(json: String) {
 
     /**
      * Pops a primitive word.
+     *
      * @return popped word
      */
     fun popWordPrimitive(): String {
@@ -96,6 +103,7 @@ class JsonTokens(json: String) {
 
     /**
      * Checks if the current char is a delimiter.
+     *
      * @param curr current char
      * @return true if the current char is a delimiter
      */

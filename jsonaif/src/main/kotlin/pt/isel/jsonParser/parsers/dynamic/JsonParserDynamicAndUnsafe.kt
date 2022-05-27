@@ -30,6 +30,7 @@ object JsonParserDynamicAndUnsafe : AbstractJsonParserDynamic() {
 
     /**
      * Gets the [klass] instance with [tokens] data.
+     *
      * @param tokens JSON tokens
      * @param klass represents a class
      * @param hasNoArgsCtor true if the [klass]' primary constructor are all mutable properties with default values
@@ -167,6 +168,9 @@ object JsonParserDynamicAndUnsafe : AbstractJsonParserDynamic() {
 
     /**
      * Retrieves the unsafe function setter name type string.
+     *
+     * @param propertyKType property type
+     * @return unsafe function setter name type string
      */
     private fun getUnsafeSetterTypeString(propertyKType: KType): String {
         val propertyKlass = propertyKType.classifier as KClass<*>
@@ -184,6 +188,8 @@ object JsonParserDynamicAndUnsafe : AbstractJsonParserDynamic() {
      * Otherwise, the property is parsed using [JsonParserDynamicAndUnsafe] parse and then cast to the type.
      *
      * @param propertyKType property type
+     *
+     * @return code to be used in [setter]
      */
     private fun getPropertyParsingCode(propertyKType: KType, castToType: Boolean): String {
         val propertyKlass = propertyKType.classifier as KClass<*>

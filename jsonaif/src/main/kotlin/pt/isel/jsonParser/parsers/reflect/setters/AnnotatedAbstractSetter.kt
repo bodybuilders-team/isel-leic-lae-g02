@@ -13,6 +13,7 @@ import kotlin.reflect.full.findAnnotation
  * @property kParam the parameter
  */
 abstract class AnnotatedAbstractSetter(kParam: KParameter) : AbstractSetter(kParam) {
+
     private val convertAnnotation = kParam.findAnnotation<JsonConvert>()
         ?: throw ParseException("Parameter ${kParam.name} doesn't have a JsonConvert annotation")
 
@@ -24,7 +25,9 @@ abstract class AnnotatedAbstractSetter(kParam: KParameter) : AbstractSetter(kPar
 
     /**
      * Parses a JSON value to a Kotlin object based on a converter class.
+     *
+     * @param convObject object to be converted
+     * @return the converted object
      */
-    protected fun convert(convObject: Any?): Any? =
-        convertFunction.call(obj, convObject)
+    protected fun convert(convObject: Any?): Any? = convertFunction.call(obj, convObject)
 }

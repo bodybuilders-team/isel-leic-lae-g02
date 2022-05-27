@@ -95,8 +95,10 @@ abstract class AbstractJsonParser : JsonParser {
 
     /**
      * Parses the JSON tokens with a class representation.
+     *
      * @param tokens JSON tokens
      * @param klass represents a class
+     *
      * @return [klass] instance with [tokens] data
      */
     fun parse(tokens: JsonTokens, klass: KClass<*>): Any? {
@@ -111,8 +113,10 @@ abstract class AbstractJsonParser : JsonParser {
 
     /**
      * Parses the JSON primitive tokens with a class representation.
+     *
      * @param tokens JSON tokens
      * @param klass represents a class
+     *
      * @return [klass] instance with [tokens] data
      * @throws ParseException if something unexpected happens
      */
@@ -134,8 +138,10 @@ abstract class AbstractJsonParser : JsonParser {
 
     /**
      * Parses the JSON object tokens with a class representation.
+     *
      * @param tokens JSON tokens
      * @param klass represents a class
+     *
      * @return [klass] instance with [tokens] data
      */
     fun parseObject(tokens: JsonTokens, klass: KClass<*>): Any {
@@ -159,6 +165,7 @@ abstract class AbstractJsonParser : JsonParser {
 
     /**
      * Gets the [klass] instance with [tokens] data.
+     *
      * @param tokens JSON tokens
      * @param klass represents a class
      * @param hasNoArgsCtor true if the [klass]' primary constructor are all mutable properties with default values
@@ -169,6 +176,7 @@ abstract class AbstractJsonParser : JsonParser {
 
     /**
      * Parses the JSON string tokens.
+     *
      * @param tokens JSON tokens
      * @return string with [tokens] data
      */
@@ -182,6 +190,7 @@ abstract class AbstractJsonParser : JsonParser {
      *
      * @param tokens JSON tokens
      * @param klass represents the array elements type
+     *
      * @return string instance with [tokens] data
      */
     private fun parseArray(tokens: JsonTokens, klass: KClass<*>): List<Any?> {

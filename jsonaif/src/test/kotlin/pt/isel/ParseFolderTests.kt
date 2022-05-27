@@ -9,14 +9,15 @@ import kotlin.test.assertEquals
 
 class ParseFolderTests {
 
+    companion object {
+        private const val FOLDER_PATH = "./src/test/kotlin/pt/isel/sample/parseFolder/test1"
+    }
+
     @BeforeTest
     fun resetFiles() {
-        val filePath =
-            "C:\\ISEL\\4º Semestre\\LAE\\jsonaif-i41d_02\\jsonaif\\src\\test\\kotlin\\pt\\isel\\sample\\parseFolder\\test1"
-
-        val file1 = File("$filePath\\test1.txt")
-        val file2 = File("$filePath\\test1_2.txt")
-        val file3 = File("$filePath\\test1_3.txt")
+        val file1 = File("$FOLDER_PATH\\test1.txt")
+        val file2 = File("$FOLDER_PATH\\test1_2.txt")
+        val file3 = File("$FOLDER_PATH\\test1_3.txt")
 
         file1.writeText("{}")
         file2.writeText("{}")
@@ -29,8 +30,7 @@ class ParseFolderTests {
 
     @Test
     fun `parseFolderEager works`() {
-        val students =
-            JsonParserReflect.parseFolderEager<Student>("C:\\ISEL\\4º Semestre\\LAE\\jsonaif-i41d_02\\jsonaif\\src\\test\\kotlin\\pt\\isel\\sample\\parseFolder\\test1")
+        val students = JsonParserReflect.parseFolderEager<Student>(FOLDER_PATH)
 
         assertEquals(
             listOf(
@@ -44,8 +44,7 @@ class ParseFolderTests {
 
     @Test
     fun `parseFolderLazy works`() {
-        val students =
-            JsonParserReflect.parseFolderLazy<Student>("C:\\ISEL\\4º Semestre\\LAE\\jsonaif-i41d_02\\jsonaif\\src\\test\\kotlin\\pt\\isel\\sample\\parseFolder\\test1")
+        val students = JsonParserReflect.parseFolderLazy<Student>(FOLDER_PATH)
 
         assertEquals(
             listOf(
@@ -59,14 +58,11 @@ class ParseFolderTests {
 
     @Test
     fun `Changing file during parsing with parseFolderEager`() {
-        val filePath =
-            "C:\\ISEL\\4º Semestre\\LAE\\jsonaif-i41d_02\\jsonaif\\src\\test\\kotlin\\pt\\isel\\sample\\parseFolder\\test1"
-
-        val file2 = File("$filePath\\test1_2.txt")
-        val file3 = File("$filePath\\test1_3.txt")
+        val file2 = File("$FOLDER_PATH\\test1_2.txt")
+        val file3 = File("$FOLDER_PATH\\test1_3.txt")
 
         val students =
-            JsonParserReflect.parseFolderEager<Student>(filePath)
+            JsonParserReflect.parseFolderEager<Student>(FOLDER_PATH)
 
         assertEquals(
             listOf(
@@ -101,14 +97,11 @@ class ParseFolderTests {
 
     @Test
     fun `Changing file during parsing with parseFolderLazy`() {
-        val filePath =
-            "C:\\ISEL\\4º Semestre\\LAE\\jsonaif-i41d_02\\jsonaif\\src\\test\\kotlin\\pt\\isel\\sample\\parseFolder\\test1"
-
-        val file2 = File("$filePath\\test1_2.txt")
-        val file3 = File("$filePath\\test1_3.txt")
+        val file2 = File("$FOLDER_PATH\\test1_2.txt")
+        val file3 = File("$FOLDER_PATH\\test1_3.txt")
 
         val students =
-            JsonParserReflect.parseFolderLazy<Student>(filePath)
+            JsonParserReflect.parseFolderLazy<Student>(FOLDER_PATH)
 
         assertEquals(
             listOf(

@@ -29,6 +29,7 @@ object JsonParserDynamic : AbstractJsonParserDynamic() {
 
     /**
      * Gets the [klass] instance with [tokens] data.
+     *
      * @param tokens JSON tokens
      * @param klass represents a class
      * @param hasNoArgsCtor true if the [klass]' primary constructor are all mutable properties with default values
@@ -158,6 +159,8 @@ object JsonParserDynamic : AbstractJsonParserDynamic() {
      * Otherwise, the property is parsed using [JsonParserDynamic] parse and then cast to the type.
      *
      * @param propertyKType property type
+     *
+     * @return parsing code
      */
     private fun getPropertyParsingCode(propertyKType: KType): String {
         val propertyKlass = propertyKType.classifier as KClass<*>

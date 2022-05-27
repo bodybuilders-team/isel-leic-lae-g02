@@ -9,6 +9,7 @@ interface Setter {
 
     /**
      * Sets the target with the data from [tokens]
+     *
      * @param target where tokens value will be set
      * @param tokens JSON tokens
      */
