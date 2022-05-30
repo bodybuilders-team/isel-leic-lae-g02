@@ -23,7 +23,7 @@ import kotlin.reflect.full.primaryConstructor
  */
 object JsonParserReflect : AbstractJsonParser() {
 
-    override fun getInstance(tokens: JsonTokens, klass: KClass<*>, hasNoArgsCtor: Boolean): Any =
+    override fun <T : Any> getInstance(tokens: JsonTokens, klass: KClass<T>, hasNoArgsCtor: Boolean): T =
         if (hasNoArgsCtor)
             parseObjectWithInstance(tokens, klass)
         else
@@ -39,7 +39,7 @@ object JsonParserReflect : AbstractJsonParser() {
      * @return parsed object
      * @throws ParseException if something unexpected happens
      */
-    private fun parseObjectWithInstance(tokens: JsonTokens, klass: KClass<*>): Any {
+    private fun <T : Any> parseObjectWithInstance(tokens: JsonTokens, klass: KClass<T>): T {
         val instance = klass.createInstance()
 
         traverseJsonObject(tokens, klass, instance)
@@ -56,8 +56,8 @@ object JsonParserReflect : AbstractJsonParser() {
      * @return parsed object
      * @throws ParseException if something unexpected happens
      */
-    private fun parseObjectWithCtor(tokens: JsonTokens, klass: KClass<*>): Any {
-        val constructorParams = mutableMapOf<KParameter, Any?>()
+    private fun <T : Any> parseObjectWithCtor(tokens: JsonTokens, klass: KClass<T>): T {
+        val constructorParams = mutableMapOf<KParameter, T?>()
 
         traverseJsonObject(tokens, klass, constructorParams)
 
@@ -74,7 +74,7 @@ object JsonParserReflect : AbstractJsonParser() {
      *
      * @return [kParam] setter
      */
-    override fun getSetter(klass: KClass<*>, kParam: KParameter, hasNoArgsCtor: Boolean): Setter {
+    override fun <T : Any> getSetter(klass: KClass<T>, kParam: KParameter, hasNoArgsCtor: Boolean): Setter {
         val isAnnotated = kParam.hasAnnotation<JsonConvert>()
 
         return when {

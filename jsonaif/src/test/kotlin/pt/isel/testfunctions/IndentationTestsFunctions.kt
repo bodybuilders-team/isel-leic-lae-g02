@@ -1,7 +1,7 @@
 package pt.isel.testfunctions
 
 import pt.isel.jsonParser.JsonParser
-import pt.isel.jsonParser.parseArray
+import pt.isel.jsonParser.parseArrayNotNull
 import pt.isel.jsonParser.parseNotNull
 import pt.isel.sample.generalTests.student.Student
 import kotlin.test.assertEquals
@@ -44,7 +44,7 @@ object IndentationTestsFunctions {
     fun `Parse empty array with no characters between brackets`(jsonParser: JsonParser) {
         val json = "[]"
 
-        val persons = jsonParser.parseArray<Student>(json)
+        val persons = jsonParser.parseArrayNotNull<Student>(json)
 
         assertEquals(0, persons.size)
     }
@@ -52,7 +52,7 @@ object IndentationTestsFunctions {
     fun `Parse empty array with spaces between brackets`(jsonParser: JsonParser) {
         val json = "[          ]"
 
-        val persons = jsonParser.parseArray<Student>(json)
+        val persons = jsonParser.parseArrayNotNull<Student>(json)
 
         assertEquals(0, persons.size)
     }
@@ -60,7 +60,7 @@ object IndentationTestsFunctions {
     fun `Parse empty array with spaces before opening brackets`(jsonParser: JsonParser) {
         val json = "          []"
 
-        val persons = jsonParser.parseArray<Student>(json)
+        val persons = jsonParser.parseArrayNotNull<Student>(json)
 
         assertEquals(0, persons.size)
     }
@@ -68,7 +68,7 @@ object IndentationTestsFunctions {
     fun `Parse empty array with spaces after closing brackets`(jsonParser: JsonParser) {
         val json = "[]          "
 
-        val persons = jsonParser.parseArray<Student>(json)
+        val persons = jsonParser.parseArrayNotNull<Student>(json)
 
         assertEquals(0, persons.size)
     }

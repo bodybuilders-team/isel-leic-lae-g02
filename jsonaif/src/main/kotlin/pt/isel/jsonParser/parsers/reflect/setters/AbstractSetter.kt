@@ -46,7 +46,10 @@ abstract class AbstractSetter(private val kParam: KParameter) {
      * @return parsed value
      */
     fun parse(tokens: JsonTokens): Any? {
-        val propValue = JsonParserReflect.parse(tokens, listObjectTypeKlass ?: typeKlass)
+        val propValue = if (listObjectTypeKlass != null)
+            JsonParserReflect.parseArray(tokens, listObjectTypeKlass)
+        else
+            JsonParserReflect.parse(tokens, typeKlass)
 
         if (propValue == null && !isNullable)
             throw ParseException("Value of parameter ${kParam.name} should not be null")

@@ -36,7 +36,7 @@ object JsonParserDynamic : AbstractJsonParserDynamic() {
      *
      * @return [klass] instance with [tokens] data
      */
-    override fun getInstance(tokens: JsonTokens, klass: KClass<*>, hasNoArgsCtor: Boolean): Any {
+    override fun <T : Any> getInstance(tokens: JsonTokens, klass: KClass<T>, hasNoArgsCtor: Boolean): T {
         val instance = klass.createInstance()
 
         traverseJsonObject(tokens, klass, instance)
@@ -56,7 +56,7 @@ object JsonParserDynamic : AbstractJsonParserDynamic() {
      * @return [kParam] setter
      * @throws ParseException if [hasNoArgsCtor] is false
      */
-    override fun getSetter(klass: KClass<*>, kParam: KParameter, hasNoArgsCtor: Boolean) =
+    override fun <T : Any> getSetter(klass: KClass<T>, kParam: KParameter, hasNoArgsCtor: Boolean) =
         when {
             !hasNoArgsCtor ->
                 throw ParseException(
@@ -75,7 +75,7 @@ object JsonParserDynamic : AbstractJsonParserDynamic() {
      *
      * @return [kParam] setter
      */
-    private fun getPropertySetter(klass: KClass<*>, kParam: KParameter): Setter =
+    private fun <T : Any> getPropertySetter(klass: KClass<T>, kParam: KParameter): Setter =
         setter(klass, kParam, kParam.type, valueDeclaration = "value")
 
     /**
@@ -88,7 +88,7 @@ object JsonParserDynamic : AbstractJsonParserDynamic() {
      *
      * @return [kParam] setter
      */
-    private fun getAnnotatedPropertySetter(klass: KClass<*>, kParam: KParameter): Setter {
+    private fun <T : Any> getAnnotatedPropertySetter(klass: KClass<T>, kParam: KParameter): Setter {
         val annotation = kParam.findAnnotation<JsonConvert>()
             ?: throw ParseException("The parameter $kParam is not annotated with @JsonConvert")
 
@@ -176,7 +176,7 @@ object JsonParserDynamic : AbstractJsonParserDynamic() {
                 ".parse${propertyKlass.simpleName}(tokens.popWordPrimitive().trim());\n"
         else
             "$kParamObjectTypeName value = ($kParamObjectTypeName) ${JsonParserDynamic::class.qualifiedName}" +
-                ".INSTANCE.parse(tokens, kotlin.jvm.JvmClassMappingKt.getKotlinClass(" +
+                ".INSTANCE.parse${if (listObjectTypeKlass != null) "Array" else ""}(tokens, kotlin.jvm.JvmClassMappingKt.getKotlinClass(" +
                 "${listObjectTypeKlass?.javaObjectType?.name ?: propertyKlass.javaObjectType.name}.class));\n"
     }
 }

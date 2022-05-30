@@ -27,9 +27,13 @@ abstract class AbstractJsonParser : JsonParser {
         private const val NULL_STRING = "null"
     }
 
-    override fun parse(source: String, klass: KClass<*>): Any? = parse(JsonTokens(source), klass)
+    override fun <T : Any> parse(source: String, klass: KClass<T>): T? =
+        parse(JsonTokens(source), klass)
 
-    override fun parseSequence(json: String, klass: KClass<*>): Sequence<Any?> = sequence {
+    override fun <T : Any> parseArray(source: String, klass: KClass<T>): List<T?>? =
+        parseArray(JsonTokens(source), klass)
+
+    override fun <T : Any> parseSequence(json: String, klass: KClass<T>): Sequence<T?> = sequence {
         val tokens = JsonTokens(json)
         if (tokens.current != ARRAY_OPEN) throw ParseException("Invalid JSON array")
 
@@ -56,7 +60,7 @@ abstract class AbstractJsonParser : JsonParser {
      * @throws [ParseException] if any file in the directory is not a valid JSON object compatible with [T]
      */
     @Suppress("UNCHECKED_CAST")
-    inline fun <reified T> parseFolderEager(path: String): List<T?> {
+    inline fun <reified T : Any> parseFolderEager(path: String): List<T?> {
         val file = File(path)
         if (!file.exists()) throw ParseException("File $path does not exist")
 
@@ -67,7 +71,7 @@ abstract class AbstractJsonParser : JsonParser {
                 val tokens = JsonTokens(json)
 
                 return@map parseObject(tokens, T::class)
-            }.toList() as List<T?>
+            }.toList()
     }
 
     /**
@@ -79,7 +83,7 @@ abstract class AbstractJsonParser : JsonParser {
      * @throws [ParseException] if any file in the directory is not a valid JSON object compatible with [T]
      */
     @Suppress("UNCHECKED_CAST")
-    inline fun <reified T> parseFolderLazy(path: String): Sequence<T?> {
+    inline fun <reified T : Any> parseFolderLazy(path: String): Sequence<T?> {
         val file = File(path)
         if (!file.exists()) throw ParseException("File $path does not exist")
 
@@ -90,7 +94,7 @@ abstract class AbstractJsonParser : JsonParser {
                 val tokens = JsonTokens(json)
 
                 return@map parseObject(tokens, T::class)
-            } as Sequence<T?>
+            }
     }
 
     /**
@@ -101,12 +105,12 @@ abstract class AbstractJsonParser : JsonParser {
      *
      * @return [klass] instance with [tokens] data
      */
-    fun parse(tokens: JsonTokens, klass: KClass<*>): Any? {
+    @Suppress("UNCHECKED_CAST")
+    fun <T : Any> parse(tokens: JsonTokens, klass: KClass<T>): T? {
         tokens.trim()
         return when (tokens.current) {
             OBJECT_OPEN -> parseObject(tokens, klass)
-            ARRAY_OPEN -> parseArray(tokens, klass)
-            DOUBLE_QUOTES -> parseString(tokens)
+            DOUBLE_QUOTES -> parseString(tokens) as T
             else -> parsePrimitive(tokens, klass)
         }
     }
@@ -120,7 +124,8 @@ abstract class AbstractJsonParser : JsonParser {
      * @return [klass] instance with [tokens] data
      * @throws ParseException if something unexpected happens
      */
-    private fun parsePrimitive(tokens: JsonTokens, klass: KClass<*>): Any? {
+    @Suppress("UNCHECKED_CAST")
+    private fun <T : Any> parsePrimitive(tokens: JsonTokens, klass: KClass<T>): T? {
         val unparsedValue = tokens.popWordPrimitive().trim()
         if (unparsedValue == NULL_STRING) return null
 
@@ -128,7 +133,7 @@ abstract class AbstractJsonParser : JsonParser {
             ?: throw ParseException("Value $unparsedValue is not of expected class ${klass.qualifiedName}")
 
         try {
-            return parser(unparsedValue)
+            return parser(unparsedValue) as T
         } catch (err: NumberFormatException) {
             throw ParseException("Value $unparsedValue is not of expected class ${klass.qualifiedName}")
         } catch (err: IllegalArgumentException) {
@@ -144,7 +149,7 @@ abstract class AbstractJsonParser : JsonParser {
      *
      * @return [klass] instance with [tokens] data
      */
-    fun parseObject(tokens: JsonTokens, klass: KClass<*>): Any {
+    fun <T : Any> parseObject(tokens: JsonTokens, klass: KClass<T>): T {
         tokens.pop(OBJECT_OPEN)
         tokens.trim() // Added to allow for empty object
 
@@ -172,7 +177,7 @@ abstract class AbstractJsonParser : JsonParser {
      *
      * @return [klass] instance with [tokens] data
      */
-    protected abstract fun getInstance(tokens: JsonTokens, klass: KClass<*>, hasNoArgsCtor: Boolean): Any
+    protected abstract fun <T : Any> getInstance(tokens: JsonTokens, klass: KClass<T>, hasNoArgsCtor: Boolean): T
 
     /**
      * Parses the JSON string tokens.
@@ -193,8 +198,17 @@ abstract class AbstractJsonParser : JsonParser {
      *
      * @return string instance with [tokens] data
      */
-    private fun parseArray(tokens: JsonTokens, klass: KClass<*>): List<Any?> {
-        val list = mutableListOf<Any?>()
+    fun <T : Any> parseArray(tokens: JsonTokens, klass: KClass<T>): List<T?>? {
+        // Nullability support....
+        tokens.trim()
+        if (tokens.current != ARRAY_OPEN) {
+            val unparsedValue = tokens.popWordPrimitive().trim()
+            if (unparsedValue == NULL_STRING) return null
+
+            throw ParseException("Value $unparsedValue is not of expected class ${klass.qualifiedName}")
+        }
+
+        val list = mutableListOf<T?>()
         tokens.pop(ARRAY_OPEN)
         tokens.trim() // Added to allow for empty arrays
 
@@ -216,7 +230,7 @@ abstract class AbstractJsonParser : JsonParser {
      * @param klass represents a class
      * @return true if the [klass] is valid to parse
      */
-    private fun isParseable(klass: KClass<*>): Boolean {
+    private fun <T : Any> isParseable(klass: KClass<T>): Boolean {
         if (klass in parseableKClasses)
             return true
 
@@ -235,7 +249,7 @@ abstract class AbstractJsonParser : JsonParser {
      * @param klass represents a class
      * @param target target to apply setter
      */
-    protected fun traverseJsonObject(tokens: JsonTokens, klass: KClass<*>, target: Any) {
+    protected fun <T : Any> traverseJsonObject(tokens: JsonTokens, klass: KClass<T>, target: Any) {
         while (tokens.current != OBJECT_END) {
             val propName = tokens.popWordFinishedWith(COLON).trim()
             val setter = setters[klass]?.get(propName)
@@ -256,7 +270,7 @@ abstract class AbstractJsonParser : JsonParser {
      *
      * @return map for accessing a parameter by its name
      */
-    private fun loadSetters(klass: KClass<*>, hasNoArgsCtor: Boolean): Map<String?, Setter> =
+    private fun <T : Any> loadSetters(klass: KClass<T>, hasNoArgsCtor: Boolean): Map<String?, Setter> =
         klass.primaryConstructor?.parameters?.associate { kParam ->
             Pair(
                 getJsonPropertyName(kParam),
@@ -273,5 +287,5 @@ abstract class AbstractJsonParser : JsonParser {
      *
      * @return [kParam] setter
      */
-    protected abstract fun getSetter(klass: KClass<*>, kParam: KParameter, hasNoArgsCtor: Boolean): Setter
+    protected abstract fun <T : Any> getSetter(klass: KClass<T>, kParam: KParameter, hasNoArgsCtor: Boolean): Setter
 }

@@ -37,8 +37,9 @@ object JsonParserDynamicAndUnsafe : AbstractJsonParserDynamic() {
      *
      * @return [klass] instance with [tokens] data
      */
-    override fun getInstance(tokens: JsonTokens, klass: KClass<*>, hasNoArgsCtor: Boolean): Any {
-        val instance = unsafe.allocateInstance(klass.java)
+    @Suppress("UNCHECKED_CAST")
+    override fun <T : Any> getInstance(tokens: JsonTokens, klass: KClass<T>, hasNoArgsCtor: Boolean): T {
+        val instance = unsafe.allocateInstance(klass.java) as T
 
         traverseJsonObject(tokens, klass, instance)
 
@@ -57,7 +58,7 @@ object JsonParserDynamicAndUnsafe : AbstractJsonParserDynamic() {
      * @return [kParam] setter
      * @throws ParseException if [hasNoArgsCtor] is false
      */
-    override fun getSetter(klass: KClass<*>, kParam: KParameter, hasNoArgsCtor: Boolean) =
+    override fun <T : Any> getSetter(klass: KClass<T>, kParam: KParameter, hasNoArgsCtor: Boolean) =
         when {
             kParam.hasAnnotation<JsonConvert>() -> getAnnotatedPropertySetter(klass, kParam)
             else -> getPropertySetter(klass, kParam)
@@ -71,7 +72,7 @@ object JsonParserDynamicAndUnsafe : AbstractJsonParserDynamic() {
      *
      * @return [kParam] setter
      */
-    private fun getPropertySetter(klass: KClass<*>, kParam: KParameter): Setter =
+    private fun <T : Any> getPropertySetter(klass: KClass<T>, kParam: KParameter): Setter =
         setter(klass, kParam, kParam.type, valueDeclaration = "value", castToType = false)
 
     /**
@@ -207,7 +208,7 @@ object JsonParserDynamicAndUnsafe : AbstractJsonParserDynamic() {
             "${if (castToType) kParamObjectTypeName else "Object"} value =" +
                 " ${if (castToType) "($kParamObjectTypeName)" else ""}" +
                 " ${JsonParserDynamicAndUnsafe::class.qualifiedName}" +
-                ".INSTANCE.parse(tokens, kotlin.jvm.JvmClassMappingKt.getKotlinClass(" +
+                ".INSTANCE.parse${if (listObjectTypeKlass != null) "Array" else ""}(tokens, kotlin.jvm.JvmClassMappingKt.getKotlinClass(" +
                 "${listObjectTypeKlass?.javaObjectType?.name ?: propertyKlass.javaObjectType.name}.class));\n"
     }
 }

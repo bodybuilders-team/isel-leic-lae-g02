@@ -3,7 +3,6 @@ package pt.isel
 import pt.isel.jsonParser.JsonParser
 import pt.isel.jsonParser.ParseException
 import pt.isel.jsonParser.parse
-import pt.isel.jsonParser.parseArray
 import pt.isel.jsonParser.parseNotNull
 import pt.isel.sample.generalTests.Person
 import kotlin.reflect.KClass
@@ -14,25 +13,37 @@ import kotlin.test.assertFailsWith
 class ParserGenericsTests {
 
     object ArrayMockParser : JsonParser {
-        override fun parse(source: String, klass: KClass<*>): Any {
-            return listOf(Person(0, "Joe", null, null), Person(1, "John", null, null), Person(2, "Jack", null, null))
+        override fun <T : Any> parse(source: String, klass: KClass<T>): T? {
+            return null
         }
 
-        override fun parseSequence(json: String, klass: KClass<*>): Sequence<Any?> {
+        override fun <T : Any> parseSequence(json: String, klass: KClass<T>): Sequence<T?> {
             return sequenceOf()
+        }
+
+        override fun <T : Any> parseArray(source: String, klass: KClass<T>): List<T?>? {
+            return listOf(
+                Person(0, "Joe", null, null),
+                Person(1, "John", null, null),
+                Person(2, "Jack", null, null)
+            ) as List<T?>?
         }
     }
 
     object MockParser : JsonParser {
-        override fun parse(source: String, klass: KClass<*>): Any? {
+        override fun <T : Any> parse(source: String, klass: KClass<T>): T? {
             if (source == "{null}")
                 return null
 
-            return Person(0, "Joe", null, null)
+            return Person(0, "Joe", null, null) as T
         }
 
-        override fun parseSequence(json: String, klass: KClass<*>): Sequence<Any?> {
+        override fun <T : Any> parseSequence(json: String, klass: KClass<T>): Sequence<T?> {
             return sequenceOf()
+        }
+
+        override fun <T : Any> parseArray(source: String, klass: KClass<T>): List<T?>? {
+            return arrayListOf()
         }
     }
 
@@ -66,17 +77,5 @@ class ParserGenericsTests {
         assertFailsWith<ParseException> {
             MockParser.parseNotNull<Person>(json)
         }
-    }
-
-    @Test
-    fun `parseArray yields same result as calling parse and casting to List`() {
-        val json = "{}"
-
-        @Suppress("UNCHECKED_CAST")
-        val normalValue = ArrayMockParser.parse(json, Person::class) as List<Person>
-
-        val genericsValue = ArrayMockParser.parseArray<Person>(json)
-
-        assertEquals(normalValue, genericsValue)
     }
 }
